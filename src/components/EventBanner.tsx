@@ -36,12 +36,12 @@ export function EventBanner({ event }: { event: PuzzleEvent }) {
             Featured event
           </span>
 
-          <h1 className="evbanner-title">
+          <h2 className="evbanner-title">
             <span className="evbanner-emoji" aria-hidden="true">
               {event.emoji}
             </span>
             {event.name}
-          </h1>
+          </h2>
 
           <p className="evbanner-sub">
             A themed collection for a slow afternoon. Solve event puzzles and earn{' '}

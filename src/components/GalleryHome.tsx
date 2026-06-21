@@ -156,6 +156,10 @@ export function GalleryHome() {
 
   return (
     <div className="gallery">
+      {/* The page's single, stable keyword H1 (the hero/event banner below use
+          h2). Visually hidden so the design lead is the hero, but crawlers and
+          screen readers always get "Free Online Jigsaw Puzzles" as the H1. */}
+      <h1 className="sr-only">Free Online Jigsaw Puzzles</h1>
       {featured ? <EventBanner event={featured} /> : <Hero />}
 
       <div className="ghome-searchwrap">

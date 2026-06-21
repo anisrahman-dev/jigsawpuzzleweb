@@ -17,10 +17,10 @@ export function Hero() {
             Free jigsaw puzzles
           </span>
 
-          <h1 id="hero-title" className="hero-title">
+          <h2 id="hero-title" className="hero-title">
             Unwind with a<br />
             beautiful jigsaw
-          </h1>
+          </h2>
 
           <p className="hero-subtitle">
             Hundreds of free puzzles. Pick a picture, choose your pieces, and start
