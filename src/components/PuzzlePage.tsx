@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import { ALL_CATEGORIES } from '@/data/categories'
 import { findPuzzle, type GalleryPuzzle } from '@/data/gallery'
+import { setCanonical } from '@/lib/seo'
 import { useUiStore } from '@/store/uiStore'
 import { DifficultyPicker } from './DifficultyPicker'
 import { Spinner } from './Spinner'
@@ -86,11 +87,14 @@ export function PuzzlePage() {
       'description',
       `Free ${name} jigsaw puzzle${feature} - play online with 12 to 300 pieces, no login.`,
     )
+    // Self-referencing canonical so client-side navigation to a puzzle doesn't
+    // leave the previous page's canonical in the head.
+    if (route) setCanonical(`/puzzle/${route.category}/${route.id}/${route.slug}`)
     return () => {
       document.title = `${SITE} - Free Online Jigsaw Puzzles`
       setMeta('description', DEFAULT_DESC)
     }
-  }, [puzzle, name, categoryNode, heading])
+  }, [puzzle, name, categoryNode, heading, route])
 
   if (notFound) {
     return (

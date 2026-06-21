@@ -11,12 +11,19 @@ import { eventTarget, EVENT_POINTS_MULTIPLIER } from '@/data/events'
 import { PixabayError } from '@/api/pixabay'
 import { useUiStore } from '@/store/uiStore'
 import { useCountdown } from '@/hooks/useCountdown'
+import {
+  SITE,
+  absUrl,
+  setMeta,
+  setCanonical,
+  setJsonLd,
+  removeJsonLd,
+  resetHead,
+} from '@/lib/seo'
 import { PuzzleCard } from './PuzzleCard'
 import { Spinner } from './Spinner'
 import { Icon } from '@/components/Icon'
 import './EventPage.css'
-
-const SITE = 'JigsawJam'
 
 export function EventPage() {
   const event = useUiStore((s) => s.selectedEvent)
@@ -46,12 +53,55 @@ export function EventPage() {
     }
   }, [event])
 
+  // SEO: title, meta description, canonical, breadcrumb + collection JSON-LD.
   useEffect(() => {
-    document.title = event ? `${event.name} Jigsaw Puzzles - ${SITE}` : SITE
+    if (!event) return
+    const path = `/event/${event.key}`
+    const name = `${event.name} Jigsaw Puzzles`
+    document.title = `${name} - Free Online | ${SITE}`
+    setMeta(
+      'description',
+      `Play free ${event.name} jigsaw puzzles online - a themed collection you can ` +
+        `solve from 12 to 300 pieces, earning ${EVENT_POINTS_MULTIPLIER}x points during the ` +
+        `event. No login, no downloads.`,
+    )
+    setCanonical(path)
+    setJsonLd('ld-ev-breadcrumb', {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: absUrl('/') },
+        { '@type': 'ListItem', position: 2, name, item: absUrl(path) },
+      ],
+    })
     return () => {
-      document.title = `${SITE} - Free Online Jigsaw Puzzles`
+      resetHead()
+      removeJsonLd('ld-ev-breadcrumb', 'ld-ev-collection')
     }
   }, [event])
+
+  // CollectionPage + ItemList once the themed puzzles are known.
+  useEffect(() => {
+    if (!event || !results || results.length === 0) return
+    const path = `/event/${event.key}`
+    setJsonLd('ld-ev-collection', {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `${event.name} Jigsaw Puzzles`,
+      url: absUrl(path),
+      isPartOf: { '@type': 'WebSite', name: SITE, url: absUrl('/') },
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: results.length,
+        itemListElement: results.slice(0, 24).map((p, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: `${p.title} Jigsaw Puzzle`,
+          image: p.thumbUrl,
+        })),
+      },
+    })
+  }, [event, results])
 
   if (!event) {
     return (

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useUiStore } from '@/store/uiStore'
 import { usePuzzleStore } from '@/store/puzzleStore'
 import { loadImage } from '@/api/pixabay'
+import { SITE, setMeta } from '@/lib/seo'
 import { useElementSize } from '@/hooks/useElementSize'
 import { usePanZoom } from '@/hooks/usePanZoom'
 import { useFullscreen } from '@/hooks/useFullscreen'
@@ -24,6 +25,13 @@ export function Game() {
   usePanZoom(wrapRef)
   const gameRef = useRef<HTMLDivElement>(null)
   const { isFullscreen, toggle: toggleFullscreen, supported: canFullscreen } = useFullscreen(gameRef)
+
+  // The play view is an interactive game, not indexable content - title + noindex.
+  useEffect(() => {
+    document.title = `Play a Jigsaw Puzzle | ${SITE}`
+    setMeta('robots', 'noindex,follow')
+    return () => setMeta('robots', 'index,follow')
+  }, [])
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [state, setState] = useState<LoadState>('idle')
   const [reloadKey, setReloadKey] = useState(0)

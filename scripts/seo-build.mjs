@@ -91,6 +91,18 @@ async function categoryLabels() {
   return map
 }
 
+// Parse event key -> display name from src/data/events.ts (ev('key','Name',...)).
+async function eventNames() {
+  const src = await fs.readFile(path.join(ROOT, 'src', 'data', 'events.ts'), 'utf8')
+  const map = new Map()
+  let m
+  const reSingle = /ev\('([^']+)',\s*'([^']*)'/g
+  while ((m = reSingle.exec(src))) map.set(m[1], m[2])
+  const reDouble = /ev\('([^']+)',\s*"([^"]*)"/g
+  while ((m = reDouble.exec(src))) map.set(m[1], m[2])
+  return map
+}
+
 // ── HTML assembly ──────────────────────────────────────────────────────────
 function buildHtml(template, { title, description, canonicalPath, prev, next, jsonld, body }) {
   const head = [
@@ -242,6 +254,53 @@ function categoriesJsonLd(index) {
           position: i + 1,
           name: `${c.label} Jigsaw Puzzles`,
           url: abs(`/${c.slug}`),
+        })),
+      },
+    },
+  ]
+}
+
+// ── Event pages (/event/<key>) ───────────────────────────────────────────────
+function eventBody(name, images) {
+  const title = `${name} Jigsaw Puzzles`
+  const tiles = images
+    .slice(0, PAGE_SIZE)
+    .map((im) => {
+      const subj = subjectName(im.tags)
+      return `<li><img src="${escAttr(im.thumb)}" width="${im.w}" height="${im.h}" alt="${escAttr(subj)} ${escHtml(name.toLowerCase())} jigsaw puzzle" loading="lazy" /><span>${escHtml(subj)}</span></li>`
+    })
+    .join('')
+  return (
+    `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>${escHtml(title)}</span></nav>` +
+    `<h1>${escHtml(title)}</h1>` +
+    `<p>Play free ${escHtml(name.toLowerCase())} jigsaw puzzles online - a themed collection of ${images.length} hand-picked pictures you can solve from 12 to 300 pieces. Every solve during the event earns triple (3x) points. No login, no downloads.</p>` +
+    `<ul class="grid">${tiles}</ul>` +
+    `<p><a href="/categories">Browse all jigsaw puzzle categories</a> · <a href="/">Home</a></p>` +
+    `</main>`
+  )
+}
+
+function eventJsonLd(name, key, images) {
+  const url = `/event/${key}`
+  return [
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: `${name} Jigsaw Puzzles`, path: url },
+    ]),
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `${name} Jigsaw Puzzles`,
+      url: abs(url),
+      isPartOf: { '@type': 'WebSite', name: SITE, url: abs('/') },
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: Math.min(images.length, PAGE_SIZE),
+        itemListElement: images.slice(0, PAGE_SIZE).map((im, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: `${subjectName(im.tags)} Jigsaw Puzzle`,
+          image: im.thumb,
         })),
       },
     },
@@ -486,6 +545,31 @@ async function main() {
     body: categoriesBody(categoryIndex),
   })
   await writePretty('/categories', categoriesHtml)
+
+  // Prerender each event page (/event/<key>) - themed evergreen collections.
+  const evNames = await eventNames()
+  const eventFiles = (await fs.readdir(CATALOG)).filter((f) => f.startsWith('event-') && f.endsWith('.json'))
+  let evCount = 0
+  for (const file of eventFiles) {
+    const key = file.replace(/^event-/, '').replace(/\.json$/, '')
+    const name = evNames.get(key) || titleCase(key.replace(/-/g, ' '))
+    const data = JSON.parse(await fs.readFile(path.join(CATALOG, file), 'utf8'))
+    const images = data.images || []
+    if (!images.length) continue
+    const html = buildHtml(template, {
+      title: `${name} Jigsaw Puzzles - Free Online | ${SITE}`,
+      description: `Play free ${name.toLowerCase()} jigsaw puzzles online - a themed collection you can solve from 12 to 300 pieces, earning 3x points during the event. No login, no downloads.`,
+      canonicalPath: `/event/${key}`,
+      prev: null,
+      next: null,
+      jsonld: eventJsonLd(name, key, images),
+      body: eventBody(name, images),
+    })
+    await writePretty(`/event/${key}`, html)
+    sitemap.push({ loc: abs(`/event/${key}`), priority: '0.6' })
+    evCount++
+  }
+  console.log(`  ${evCount} event pages`)
 
   // Prerender the home page LAST (overwrites the bare shell template).
   await buildHome(template, labels)
