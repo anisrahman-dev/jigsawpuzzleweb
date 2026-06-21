@@ -57,11 +57,15 @@ export function usePanZoom(stageRef: React.RefObject<HTMLElement | null>): void 
     }
 
     // Drag-to-pan (mouse only). Touch relies on native pan-x/pan-y scrolling.
+    // Right button pans anywhere (even over a piece); left button pans only on
+    // empty board area so it doesn't steal piece dragging.
     let pan: { x: number; y: number; sl: number; st: number; id: number } | null = null
     const onPointerDown = (e: PointerEvent): void => {
-      if (e.pointerType !== 'mouse' || e.button !== 0) return
+      if (e.pointerType !== 'mouse') return
       const t = e.target as Element | null
-      if (t?.closest('.piece')) return // a piece drag owns this gesture
+      const rightDrag = e.button === 2
+      const leftOnEmpty = e.button === 0 && !t?.closest('.piece')
+      if (!rightDrag && !leftOnEmpty) return
       pan = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop, id: e.pointerId }
       try {
         el.setPointerCapture(e.pointerId)
@@ -70,6 +74,8 @@ export function usePanZoom(stageRef: React.RefObject<HTMLElement | null>): void 
       }
       el.classList.add('is-panning')
     }
+    // Right-drag pans, so never pop the browser context menu over the stage.
+    const onContextMenu = (e: MouseEvent): void => e.preventDefault()
     const onPointerMove = (e: PointerEvent): void => {
       if (!pan) return
       el.scrollLeft = pan.sl - (e.clientX - pan.x)
@@ -91,12 +97,14 @@ export function usePanZoom(stageRef: React.RefObject<HTMLElement | null>): void 
     el.addEventListener('pointermove', onPointerMove)
     el.addEventListener('pointerup', endPan)
     el.addEventListener('pointercancel', endPan)
+    el.addEventListener('contextmenu', onContextMenu)
     return () => {
       el.removeEventListener('wheel', onWheel)
       el.removeEventListener('pointerdown', onPointerDown)
       el.removeEventListener('pointermove', onPointerMove)
       el.removeEventListener('pointerup', endPan)
       el.removeEventListener('pointercancel', endPan)
+      el.removeEventListener('contextmenu', onContextMenu)
     }
   }, [stageRef])
 }

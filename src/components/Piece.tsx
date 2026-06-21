@@ -159,7 +159,11 @@ function PieceImpl({ id, img, scaleX, scaleY, onGrab, announce }: PieceProps) {
       tabIndex={locked ? -1 : 0}
       aria-label={`Puzzle piece row ${row + 1}, column ${col + 1}${locked ? ', placed' : ''}`}
       aria-pressed={lifted}
-      onPointerDown={(e) => !locked && onGrab(e, groupId)}
+      onPointerDown={(e) => {
+        // Left button / touch grabs the piece; right button is reserved for
+        // panning the board (handled at the stage level).
+        if (e.button === 0 && !locked) onGrab(e, groupId)
+      }}
       onKeyDown={onKeyDown}
       style={{
         position: 'absolute',
