@@ -106,6 +106,17 @@ async function eventNames() {
 }
 
 // ── HTML assembly ──────────────────────────────────────────────────────────
+// Wrap the prerendered SEO body so it stays in the DOM for crawlers but is
+// visually hidden (off-screen) - this avoids the brief flash of unstyled
+// fallback markup before React mounts and replaces #root.
+function prerenderWrap(body) {
+  return (
+    `<div data-prerender style="position:absolute;width:1px;height:1px;` +
+    `padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">` +
+    `${body}</div>`
+  )
+}
+
 function buildHtml(template, { title, description, canonicalPath, prev, next, jsonld, body }) {
   const head = [
     `    <title>${escHtml(title)}</title>`,
@@ -131,7 +142,7 @@ function buildHtml(template, { title, description, canonicalPath, prev, next, js
     .replace(/    <meta property="og:[^>]*\/>\n/g, '')
     .replace(/    <meta name="twitter:[^>]*\/>\n/g, '')
     .replace(/    <title>[\s\S]*?<\/title>/, head)
-    .replace('<div id="root"></div>', `<div id="root">${body}</div>`)
+    .replace('<div id="root"></div>', `<div id="root">${prerenderWrap(body)}</div>`)
 }
 
 function breadcrumbLd(items) {
@@ -458,7 +469,7 @@ async function buildHome(template, labels) {
     .replace(/    <meta property="og:[^>]*\/>\n/g, '')
     .replace(/    <meta name="twitter:[^>]*\/>\n/g, '')
     .replace(/    <title>[\s\S]*?<\/title>/, head)
-    .replace('<div id="root"></div>', `<div id="root">${body}</div>`)
+    .replace('<div id="root"></div>', `<div id="root">${prerenderWrap(body)}</div>`)
   await fs.writeFile(path.join(DIST, 'index.html'), html)
 }
 
