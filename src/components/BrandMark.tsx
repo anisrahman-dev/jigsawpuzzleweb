@@ -3,12 +3,12 @@ import './BrandMark.css';
 interface BrandMarkProps {
   /** Glyph height in px (the wordmark scales with it). Default ~30. */
   size?: number;
-  /** Show the "Jigsaw Studio" serif wordmark beside the glyph. Default true. */
+  /** Show the "JigsawJam" serif wordmark beside the glyph. Default true. */
   showText?: boolean;
 }
 
 /**
- * BrandMark - the Jigsaw Studio identity: an inline-SVG interlocking-piece
+ * BrandMark - the JigsawJam identity: an inline-SVG interlocking-piece
  * glyph in the marigold→terracotta accent, optionally paired with the serif
  * wordmark. No external assets.
  */
@@ -25,7 +25,7 @@ export function BrandMark({ size = 30, showText = true }: BrandMarkProps = {}) {
         height={size}
         viewBox="0 0 48 48"
         role="img"
-        aria-label="Jigsaw Studio"
+        aria-label="JigsawJam"
         focusable="false"
       >
         <defs>
@@ -82,7 +82,7 @@ export function BrandMark({ size = 30, showText = true }: BrandMarkProps = {}) {
       {showText && (
         <span className="brand-text" aria-hidden="true">
           <span className="brand-word brand-word--jigsaw">Jigsaw</span>
-          <span className="brand-word brand-word--studio">Studio</span>
+          <span className="brand-word brand-word--jam">Jam</span>
         </span>
       )}
     </span>

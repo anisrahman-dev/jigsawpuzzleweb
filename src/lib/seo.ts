@@ -3,7 +3,7 @@
 // description, canonical, pagination links and JSON-LD structured data - the
 // signals Google and AI answer engines read.
 
-export const SITE = 'Jigsaw Studio'
+export const SITE = 'JigsawJam'
 export const DEFAULT_TITLE = `${SITE} - Free Online Jigsaw Puzzles`
 export const DEFAULT_DESC =
   'Play free online jigsaw puzzles - no login required. Choose any image, pick your difficulty, and start solving.'

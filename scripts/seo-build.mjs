@@ -6,7 +6,7 @@
 // the page. When the SPA's JS loads it re-renders into #root and takes over.
 // Also emits sitemap.xml (chunked + index) and robots.txt.
 //
-// Configure your domain:  SITE_URL=https://your-domain.com npm run build
+// Configure your domain:  SITE_URL=https://jigsawjam.com npm run build
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,9 +14,9 @@ import { fileURLToPath } from 'node:url'
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const DIST = path.join(ROOT, 'dist')
 const CATALOG = path.join(ROOT, 'public', 'catalog')
-const SITE = 'Jigsaw Studio'
+const SITE = 'JigsawJam'
 const PAGE_SIZE = 24
-const DEFAULT_DOMAIN = 'https://your-domain.example'
+const DEFAULT_DOMAIN = 'https://jigsawjam.com'
 const SITE_URL = (process.env.SITE_URL || DEFAULT_DOMAIN).replace(/\/+$/, '')
 const PRERENDER_PUZZLES = process.env.PRERENDER_PUZZLES !== '0'
 
@@ -248,10 +248,10 @@ const slugKeyByLabel = new Map()
 
 // ── main ───────────────────────────────────────────────────────────────────
 const HOME_FAQ = [
-  ['Is Jigsaw Studio free?', 'Yes. Every jigsaw puzzle on Jigsaw Studio is free to play online. There is no account, no subscription, and no app or download required - you play directly in your web browser.'],
+  ['Is JigsawJam free?', 'Yes. Every jigsaw puzzle on JigsawJam is free to play online. There is no account, no subscription, and no app or download required - you play directly in your web browser.'],
   ['Do I need an account or login to play?', 'No. You can start any puzzle straight away in your browser without signing up or logging in, on desktop or mobile.'],
   ['How many pieces can a puzzle have?', 'Every puzzle can be played from 12 pieces up to 300 pieces. Pick fewer pieces for a quick game or more for a longer, relaxing challenge.'],
-  ['How many puzzles and categories are there?', 'Jigsaw Studio has 32,850 puzzles organized into 73 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.'],
+  ['How many puzzles and categories are there?', 'JigsawJam has 32,850 puzzles organized into 73 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.'],
   ['What is the Puzzle of the Day?', 'A new featured puzzle is published every day. During seasonal events such as Halloween and Christmas, solving puzzles earns triple (3x) points while the event is running.'],
 ]
 const HOME_TITLE = `Free Online Jigsaw Puzzles - No Login | ${SITE}`
@@ -325,7 +325,7 @@ async function buildHome(template, labels) {
     .join('')
   const body =
     `<main><h1>Free Online Jigsaw Puzzles</h1>` +
-    `<p>Jigsaw Studio is a free online jigsaw puzzle site you play right in your browser - no login, no app, and no downloads. Choose from 32,850 puzzles across 73 categories, set any puzzle from 12 to 300 pieces, and play on desktop or mobile.</p>` +
+    `<p>JigsawJam is a free online jigsaw puzzle site you play right in your browser - no login, no app, and no downloads. Choose from 32,850 puzzles across 73 categories, set any puzzle from 12 to 300 pieces, and play on desktop or mobile.</p>` +
     `<p>A new <a href="/play">Puzzle of the Day</a> is featured every day, and during seasonal events such as Halloween, Christmas and the Summer Solstice your solves earn 3x points. Browse <a href="/categories">all 73 categories</a> or jump into a popular one:</p>` +
     `<ul>${catLinks}</ul>` +
     `<section aria-labelledby="home-faq"><h2 id="home-faq">Frequently asked questions</h2>${faq}</section>` +
@@ -340,8 +340,8 @@ async function buildHome(template, labels) {
 
 async function main() {
   if (SITE_URL === DEFAULT_DOMAIN) {
-    console.warn(`⚠  SITE_URL not set - using placeholder "${DEFAULT_DOMAIN}".`)
-    console.warn(`   Re-run with:  SITE_URL=https://your-domain.com npm run build`)
+    console.info(`ℹ  SITE_URL not set - using default "${DEFAULT_DOMAIN}".`)
+    console.info(`   Override with:  SITE_URL=https://example.com npm run build`)
   }
   const template = await fs.readFile(path.join(DIST, 'index.html'), 'utf8')
   const labels = await categoryLabels()

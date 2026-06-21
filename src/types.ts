@@ -1,5 +1,5 @@
 // ───────────────────────────────────────────────────────────────────────────
-// Shared type contracts for Jigsaw Studio.
+// Shared type contracts for JigsawJam.
 // Every module builds against these. Keep them stable.
 // ───────────────────────────────────────────────────────────────────────────
 

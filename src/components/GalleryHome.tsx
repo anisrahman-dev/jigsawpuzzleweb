@@ -12,7 +12,7 @@ import { PuzzleCard } from './PuzzleCard'
 import { Icon } from '@/components/Icon'
 import './GalleryHome.css'
 
-const HOME_TITLE = 'Free Online Jigsaw Puzzles - No Login | Jigsaw Studio'
+const HOME_TITLE = 'Free Online Jigsaw Puzzles - No Login | JigsawJam'
 const HOME_DESC =
   'Free online jigsaw puzzles you play in your browser - no login, no downloads. 32,850 puzzles in 73 categories, 12 to 300 pieces. New puzzle daily.'
 
@@ -26,8 +26,8 @@ const TOP_CATEGORIES = TOP_KEYS.map((k) => {
 
 const HOME_FAQ: { q: string; a: string }[] = [
   {
-    q: 'Is Jigsaw Studio free?',
-    a: 'Yes. Every jigsaw puzzle on Jigsaw Studio is free to play online. There is no account, no subscription, and no app or download required - you play directly in your web browser.',
+    q: 'Is JigsawJam free?',
+    a: 'Yes. Every jigsaw puzzle on JigsawJam is free to play online. There is no account, no subscription, and no app or download required - you play directly in your web browser.',
   },
   {
     q: 'Do I need an account or login to play?',
@@ -39,7 +39,7 @@ const HOME_FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'How many puzzles and categories are there?',
-    a: 'Jigsaw Studio has 32,850 puzzles organized into 73 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.',
+    a: 'JigsawJam has 32,850 puzzles organized into 73 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.',
   },
   {
     q: 'What is the Puzzle of the Day?',
@@ -257,7 +257,7 @@ export function GalleryHome() {
           </div>
         </div>
         <p className="ghome-about-lead">
-          Jigsaw Studio is a free online jigsaw puzzle site you play right in your browser - no
+          JigsawJam is a free online jigsaw puzzle site you play right in your browser - no
           login, no app, and no downloads. Choose from 32,850 puzzles across 73 categories, set any
           puzzle from 12 to 300 pieces, and play on desktop or mobile. A new{' '}
           <button type="button" className="ghome-inlink" onClick={() => useUiStore.getState().goHome()}>

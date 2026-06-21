@@ -10,7 +10,7 @@ import { Spinner } from './Spinner'
 import { Icon } from '@/components/Icon'
 import './PuzzlePage.css'
 
-const SITE = 'Jigsaw Studio'
+const SITE = 'JigsawJam'
 const DEFAULT_DESC =
   'Play free online jigsaw puzzles - no login required. Choose any image, pick your difficulty, and start solving.'
 

@@ -16,7 +16,7 @@ import { Spinner } from './Spinner'
 import { Icon } from '@/components/Icon'
 import './EventPage.css'
 
-const SITE = 'Jigsaw Studio'
+const SITE = 'JigsawJam'
 
 export function EventPage() {
   const event = useUiStore((s) => s.selectedEvent)

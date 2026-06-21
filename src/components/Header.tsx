@@ -33,7 +33,7 @@ export function Header() {
           type="button"
           className="header-brand"
           onClick={goHome}
-          aria-label="Jigsaw Studio - home"
+          aria-label="JigsawJam - home"
         >
           <BrandMark size={30} />
         </button>

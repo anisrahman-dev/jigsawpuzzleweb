@@ -86,7 +86,7 @@ export function HowToModal() {
       maxWidth={560}
     >
       <p className="howto-intro">
-        Jigsaw Studio is a relaxed, pick-up-and-play puzzle. Seven calm steps
+        JigsawJam is a relaxed, pick-up-and-play puzzle. Seven calm steps
         from blank board to finished picture:
       </p>
 
