@@ -7,3 +7,6 @@ dist-ssr
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+
+# Claude Code runtime lock
+.claude/scheduled_tasks.lock
