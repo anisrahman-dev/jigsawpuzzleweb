@@ -7,7 +7,7 @@ import './Footer.css'
  * Footer - a warm, calm site footer for the "Sunlit Puzzle Table" theme.
  * Top hairline, content capped at --max-w, generous padding. Carries the
  * brand mark + tagline, a column of quiet link-buttons (How to play, Settings),
- * and a faint image-attribution line.
+ * and a faint copyright line.
  */
 export function Footer() {
   return (
@@ -40,14 +40,7 @@ export function Footer() {
         </nav>
 
         <p className="footer-attribution">
-          Images from{' '}
-          <a href="https://pixabay.com" target="_blank" rel="noreferrer">
-            Pixabay
-          </a>
-          {' · '}Samples via{' '}
-          <a href="https://picsum.photos" target="_blank" rel="noreferrer">
-            Lorem Picsum
-          </a>
+          © {new Date().getFullYear()} JigsawJam. All rights reserved.
         </p>
       </div>
     </footer>
