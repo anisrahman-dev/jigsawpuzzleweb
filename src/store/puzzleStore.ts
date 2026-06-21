@@ -42,10 +42,15 @@ interface PuzzleState {
   draggingGroupId: number | null
   /** Most recent successful snap (home-lock or merge); drives the snap pulse. */
   lastSnap: { groupId: number; at: number } | null
+  /** View zoom factor for the play surface (1 = fit). */
+  zoom: number
 
   setup: (args: SetupArgs) => void
   bringToFront: (groupId: number) => number
   setDragging: (groupId: number | null) => void
+  setZoom: (zoom: number) => void
+  zoomIn: () => void
+  zoomOut: () => void
   moveGroup: (groupId: number, dx: number, dy: number) => void
   dropGroup: (groupId: number) => void
   scatter: () => void
@@ -77,7 +82,14 @@ const initial = {
   showGhost: false,
   draggingGroupId: null as number | null,
   lastSnap: null as { groupId: number; at: number } | null,
+  zoom: 1,
 }
+
+export const ZOOM_MIN = 0.5
+export const ZOOM_MAX = 2
+const ZOOM_STEP = 0.25
+const clampZoom = (z: number): number =>
+  Math.round(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)) * 100) / 100
 
 function adjacent(a: Piece, b: Piece): boolean {
   return Math.abs(a.col - b.col) + Math.abs(a.row - b.row) === 1
@@ -194,6 +206,10 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
   },
 
   setDragging: (groupId) => set({ draggingGroupId: groupId }),
+
+  setZoom: (zoom) => set({ zoom: clampZoom(zoom) }),
+  zoomIn: () => set((s) => ({ zoom: clampZoom(s.zoom + ZOOM_STEP) })),
+  zoomOut: () => set((s) => ({ zoom: clampZoom(s.zoom - ZOOM_STEP) })),
 
   moveGroup: (groupId, dx, dy) => {
     set((s) => {

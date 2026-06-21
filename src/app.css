@@ -63,10 +63,19 @@ body {
   min-height: calc(100vh - var(--header-h));
 }
 
+/* Positioning context for the stage + the pinned zoom widget. */
+.game-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
 .game-stage {
   position: relative;
   flex: 1;
-  overflow: hidden;
+  /* Scroll/pan when the board is zoomed past the visible area. */
+  overflow: auto;
   /* Warm tabletop around the cork board */
   background-color: var(--bg-2);
   background-image:
@@ -153,8 +162,9 @@ body {
      threshold (the board needs >= 320px in each axis to render). */
   .game-stage {
     min-height: 340px;
-    /* The pieces own touch gestures, not the page. */
-    touch-action: none;
+    /* Pieces own their own drags (touch-action:none on each); the stage allows
+       finger panning so a zoomed-in board stays reachable. */
+    touch-action: pan-x pan-y;
   }
   .game-empty {
     padding: 24px 18px;

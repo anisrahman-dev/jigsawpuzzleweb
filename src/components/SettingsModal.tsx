@@ -11,6 +11,7 @@ export function SettingsModal() {
   const highContrast = usePrefsStore((s) => s.highContrast)
   const reduceMotion = usePrefsStore((s) => s.reduceMotion)
   const hideTimer = usePrefsStore((s) => s.hideTimer)
+  const soundEnabled = usePrefsStore((s) => s.soundEnabled)
 
   const close = () => useUiStore.getState().closeSettings()
 
@@ -61,6 +62,12 @@ export function SettingsModal() {
           desc="Hide the timer - play with no pressure."
           on={hideTimer}
           onToggle={() => usePrefsStore.getState().toggleHideTimer()}
+        />
+        <ToggleRow
+          label="Sound effects"
+          desc="Gentle clicks when pieces connect."
+          on={soundEnabled}
+          onToggle={() => usePrefsStore.getState().toggleSound()}
         />
       </section>
     </Modal>

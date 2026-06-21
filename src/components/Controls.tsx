@@ -3,6 +3,7 @@ import { Icon } from '@/components/Icon'
 import { usePuzzleStore } from '@/store/puzzleStore'
 import { usePrefsStore } from '@/store/prefsStore'
 import { useUiStore } from '@/store/uiStore'
+import { playToggle } from '@/lib/sound'
 import './Controls.css'
 
 function capitalize(s: string): string {
@@ -15,6 +16,7 @@ export function Controls() {
   const rows = usePuzzleStore((s) => s.rows)
   const showGhost = usePuzzleStore((s) => s.showGhost)
   const hideTimer = usePrefsStore((s) => s.hideTimer)
+  const soundEnabled = usePrefsStore((s) => s.soundEnabled)
 
   // Two-step shuffle: a mis-tap shouldn't destroy a half-solved board.
   const [confirmingShuffle, setConfirmingShuffle] = useState(false)
@@ -24,6 +26,11 @@ export function Controls() {
   const goHome = (): void => useUiStore.getState().goHome()
   const togglePreview = (): void => usePuzzleStore.getState().toggleGhost()
   const toggleHideTimer = (): void => usePrefsStore.getState().toggleHideTimer()
+  const toggleSound = (): void => {
+    const willEnable = !usePrefsStore.getState().soundEnabled
+    usePrefsStore.getState().toggleSound()
+    if (willEnable) playToggle() // audible confirmation when turning sound on
+  }
 
   const onShuffle = (): void => {
     if (!confirmingShuffle) {
@@ -83,6 +90,16 @@ export function Controls() {
           >
             <Icon name="clock" size={18} />
             <span className="controls-label">{hideTimer ? 'Timer off' : 'Timer'}</span>
+          </button>
+          <button
+            type="button"
+            className="btn btn--sm controls-tool controls-tool--toggle"
+            aria-pressed={soundEnabled}
+            onClick={toggleSound}
+            title={soundEnabled ? 'Mute sound' : 'Turn sound on'}
+          >
+            <Icon name={soundEnabled ? 'sound-on' : 'sound-off'} size={18} />
+            <span className="controls-label">{soundEnabled ? 'Sound' : 'Muted'}</span>
           </button>
         </div>
       </div>

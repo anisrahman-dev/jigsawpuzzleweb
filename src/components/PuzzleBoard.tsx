@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePuzzleStore } from '@/store/puzzleStore'
+import { playPickup, playSnap, playWin } from '@/lib/sound'
 import { Piece } from './Piece'
 
 interface PuzzleBoardProps {
@@ -17,6 +18,9 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
   const pieces = usePuzzleStore((s) => s.pieces)
   const showGhost = usePuzzleStore((s) => s.showGhost)
   const image = usePuzzleStore((s) => s.image)
+  const zoom = usePuzzleStore((s) => s.zoom)
+  const lastSnap = usePuzzleStore((s) => s.lastSnap)
+  const status = usePuzzleStore((s) => s.status)
 
   const scaleX = img.naturalWidth / boardW
   const scaleY = img.naturalHeight / boardH
@@ -24,6 +28,14 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
   // Single polite live region for keyboard play + placement feedback.
   const [srMsg, setSrMsg] = useState('')
   const announce = useCallback((m: string) => setSrMsg(m), [])
+
+  // Sound: a soft click whenever a placement connects, a flourish on solve.
+  useEffect(() => {
+    if (lastSnap) playSnap()
+  }, [lastSnap])
+  useEffect(() => {
+    if (status === 'solved') playWin()
+  }, [status])
 
   const drag = useRef<
     | {
@@ -41,9 +53,11 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
   const onMove = useCallback((e: PointerEvent) => {
     const d = drag.current
     if (!d) return
+    // Screen pixels → surface pixels: the surface is rendered at `zoom` scale.
+    const z = usePuzzleStore.getState().zoom || 1
     usePuzzleStore
       .getState()
-      .moveGroup(d.groupId, d.baseDx + (e.clientX - d.startX), d.baseDy + (e.clientY - d.startY))
+      .moveGroup(d.groupId, d.baseDx + (e.clientX - d.startX) / z, d.baseDy + (e.clientY - d.startY) / z)
   }, [])
 
   // One path ends every drag - pointerup, pointercancel, or lostpointercapture
@@ -74,6 +88,7 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
       if (drag.current) endDrag()
       store.bringToFront(groupId)
       store.setDragging(groupId)
+      playPickup()
       const el = e.currentTarget as Element
       try {
         el.setPointerCapture(e.pointerId)
@@ -100,16 +115,23 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
   useEffect(() => endDrag, [endDrag])
 
   return (
+    // Wrapper carries the scaled footprint so the stage can scroll/pan when
+    // zoomed in; the inner surface scales from its top-left corner.
     <div
-      className="surface"
-      style={{
-        position: 'relative',
-        width: surfaceW,
-        height: surfaceH,
-        margin: '0 auto',
-        touchAction: 'none',
-      }}
+      className="surface-wrap"
+      style={{ width: surfaceW * zoom, height: surfaceH * zoom, margin: '0 auto' }}
     >
+      <div
+        className="surface"
+        style={{
+          position: 'relative',
+          width: surfaceW,
+          height: surfaceH,
+          transform: `scale(${zoom})`,
+          transformOrigin: '0 0',
+          touchAction: 'none',
+        }}
+      >
       {/* Board frame / felt - warm cork mat in a walnut rim */}
       <div
         className="board-felt"
@@ -143,18 +165,19 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
         )}
       </div>
 
-      {/* Pieces */}
-      {pieces.map((p) => (
-        <Piece
-          key={p.id}
-          id={p.id}
-          img={img}
-          scaleX={scaleX}
-          scaleY={scaleY}
-          onGrab={onGrab}
-          announce={announce}
-        />
-      ))}
+        {/* Pieces */}
+        {pieces.map((p) => (
+          <Piece
+            key={p.id}
+            id={p.id}
+            img={img}
+            scaleX={scaleX}
+            scaleY={scaleY}
+            onGrab={onGrab}
+            announce={announce}
+          />
+        ))}
+      </div>
 
       {/* Polite, on-demand status for assistive tech (keyboard play + snaps). */}
       <div className="sr-only" role="status" aria-live="polite">

@@ -28,6 +28,10 @@ export type IconName =
   | 'users'
   | 'user'
   | 'lock'
+  | 'zoom-in'
+  | 'zoom-out'
+  | 'sound-on'
+  | 'sound-off'
 
 /** Icons that read better as a solid fill than an outline. */
 const FILLED = new Set<IconName>(['play', 'flame', 'sparkle', 'heart', 'puzzle'])
@@ -59,6 +63,11 @@ const PATHS: Record<IconName, string> = {
   users:
     'M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 20v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8',
   user: 'M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M5.5 20a6.5 6.5 0 0 1 13 0',
+  'zoom-in': 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M21 21l-5.4-5.4 M10 7v6 M7 10h6',
+  'zoom-out': 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M21 21l-5.4-5.4 M7 10h6',
+  'sound-on':
+    'M11 5L6 9H3v6h3l5 4V5z M15.5 8.5a5 5 0 0 1 0 7 M18.5 5.5a9 9 0 0 1 0 13',
+  'sound-off': 'M11 5L6 9H3v6h3l5 4V5z M22 9l-6 6 M16 9l6 6',
   lock: 'M5 11h14v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M8 11V7a4 4 0 0 1 8 0v4',
 }
 

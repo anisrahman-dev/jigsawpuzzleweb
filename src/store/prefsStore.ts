@@ -15,12 +15,15 @@ interface PrefsState {
   reduceMotion: boolean
   /** Hide the elapsed-time clock for a relaxed, pressure-free game. */
   hideTimer: boolean
+  /** Play gentle sound effects while solving. */
+  soundEnabled: boolean
 
   setTextSize: (t: TextSize) => void
   cycleTextSize: () => void
   toggleHighContrast: () => void
   toggleReduceMotion: () => void
   toggleHideTimer: () => void
+  toggleSound: () => void
 }
 
 export const usePrefsStore = create<PrefsState>()(
@@ -30,6 +33,7 @@ export const usePrefsStore = create<PrefsState>()(
       highContrast: false,
       reduceMotion: false,
       hideTimer: false,
+      soundEnabled: true,
 
       setTextSize: (textSize) => set({ textSize }),
       cycleTextSize: () => {
@@ -39,6 +43,7 @@ export const usePrefsStore = create<PrefsState>()(
       toggleHighContrast: () => set((s) => ({ highContrast: !s.highContrast })),
       toggleReduceMotion: () => set((s) => ({ reduceMotion: !s.reduceMotion })),
       toggleHideTimer: () => set((s) => ({ hideTimer: !s.hideTimer })),
+      toggleSound: () => set((s) => ({ soundEnabled: !s.soundEnabled })),
     }),
     { name: 'jigsaw.prefs' },
   ),

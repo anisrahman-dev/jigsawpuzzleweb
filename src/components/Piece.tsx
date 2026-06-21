@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { usePuzzleStore } from '@/store/puzzleStore'
+import { playPickup } from '@/lib/sound'
 
 interface PieceProps {
   id: number
@@ -112,6 +113,7 @@ function PieceImpl({ id, img, scaleX, scaleY, onGrab, announce }: PieceProps) {
         store.bringToFront(groupId)
         store.setDragging(groupId)
         setLifted(true)
+        playPickup()
         announce('Lifted piece. Use the arrow keys to move it, then Enter to drop.')
       } else {
         store.setDragging(null)

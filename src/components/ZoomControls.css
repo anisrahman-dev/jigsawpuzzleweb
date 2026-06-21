@@ -1,0 +1,68 @@
+/* Floating zoom widget - bottom-right of the play area, above the timer bar. */
+.zoomctl {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 45;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.zoomctl-btn {
+  appearance: none;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.zoomctl-btn:hover {
+  background: var(--surface-2);
+}
+.zoomctl-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zoomctl-pct {
+  appearance: none;
+  min-width: 52px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+.zoomctl-pct:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+@media (max-width: 600px) {
+  .zoomctl {
+    right: 10px;
+    bottom: 10px;
+  }
+  .zoomctl-btn {
+    width: 40px;
+    height: 40px;
+  }
+}

@@ -8,6 +8,7 @@ import { Controls } from './Controls'
 import { Timer } from './Timer'
 import { CompletionModal } from './CompletionModal'
 import { HintToast } from './HintToast'
+import { ZoomControls } from './ZoomControls'
 import { Spinner } from './Spinner'
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
@@ -74,10 +75,13 @@ export function Game() {
     )
   }
 
+  const ready = state === 'ready' && puzzleReady
+
   return (
     <div className="game">
       <Controls />
-      <div className="game-stage" ref={wrapRef}>
+      <div className="game-body">
+        <div className="game-stage" ref={wrapRef}>
         {state === 'loading' && (
           <div className="game-overlay">
             <Spinner />
@@ -104,12 +108,14 @@ export function Game() {
             <p>Cutting your puzzle…</p>
           </div>
         )}
-        {state === 'ready' && img && puzzleReady && (
-          <>
-            <PuzzleBoard img={img} />
-            <HintToast />
-          </>
-        )}
+          {ready && img && (
+            <>
+              <PuzzleBoard img={img} />
+              <HintToast />
+            </>
+          )}
+        </div>
+        {ready && <ZoomControls />}
       </div>
       <Timer />
       <CompletionModal />
