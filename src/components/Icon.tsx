@@ -32,6 +32,8 @@ export type IconName =
   | 'zoom-out'
   | 'sound-on'
   | 'sound-off'
+  | 'expand'
+  | 'compress'
 
 /** Icons that read better as a solid fill than an outline. */
 const FILLED = new Set<IconName>(['play', 'flame', 'sparkle', 'heart', 'puzzle'])
@@ -68,6 +70,8 @@ const PATHS: Record<IconName, string> = {
   'sound-on':
     'M11 5L6 9H3v6h3l5 4V5z M15.5 8.5a5 5 0 0 1 0 7 M18.5 5.5a9 9 0 0 1 0 13',
   'sound-off': 'M11 5L6 9H3v6h3l5 4V5z M22 9l-6 6 M16 9l6 6',
+  expand: 'M8 3H5a2 2 0 0 0-2 2v3 M16 3h3a2 2 0 0 1 2 2v3 M21 16v3a2 2 0 0 1-2 2h-3 M8 21H5a2 2 0 0 1-2-2v-3',
+  compress: 'M8 3v3a2 2 0 0 1-2 2H3 M16 3v3a2 2 0 0 0 2 2h3 M21 16h-3a2 2 0 0 0-2 2v3 M3 16h3a2 2 0 0 1 2 2v3',
   lock: 'M5 11h14v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M8 11V7a4 4 0 0 1 8 0v4',
 }
 

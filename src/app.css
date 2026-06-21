@@ -62,6 +62,15 @@ body {
   flex-direction: column;
   min-height: calc(100vh - var(--header-h));
 }
+/* Immersive mode: the game element fills the screen (the app header is outside
+   it, so it's hidden); its children already paint the full background. */
+.game:fullscreen,
+.game:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  background: var(--bg);
+}
 
 /* Positioning context for the stage + the pinned zoom widget. */
 .game-body {

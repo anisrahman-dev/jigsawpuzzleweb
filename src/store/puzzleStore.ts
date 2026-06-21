@@ -59,6 +59,8 @@ interface PuzzleState {
   panBy: (dx: number, dy: number) => void
   /** Set zoom and pan together (used by pinch-zoom). */
   setTransform: (zoom: number, panX: number, panY: number) => void
+  /** Centre the surface within a stage of the given size (used on fullscreen). */
+  centerView: (stageW: number, stageH: number) => void
   /** Reset zoom to 1 and recentre the board. */
   resetView: () => void
   moveGroup: (groupId: number, dx: number, dy: number) => void
@@ -232,6 +234,14 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
   zoomOut: () => get().zoomAt(get().zoom - ZOOM_STEP, get().surfaceW / 2, get().surfaceH / 2),
   panBy: (dx, dy) => set((s) => ({ panX: s.panX + dx, panY: s.panY + dy })),
   setTransform: (zoom, panX, panY) => set({ zoom: clampZoom(zoom), panX, panY }),
+  centerView: (stageW, stageH) =>
+    set((s) => {
+      if (!s.surfaceW || !s.surfaceH) return {}
+      return {
+        panX: Math.round((stageW - s.surfaceW * s.zoom) / 2),
+        panY: Math.round((stageH - s.surfaceH * s.zoom) / 2),
+      }
+    }),
   resetView: () => set({ zoom: 1, panX: 0, panY: 0 }),
 
   moveGroup: (groupId, dx, dy) => {

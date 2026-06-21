@@ -87,6 +87,15 @@ export function Modal(props: ModalProps): React.ReactPortal | null {
 
   if (!open) return null;
 
+  // Portal into the fullscreen element when one is active, otherwise <body>.
+  // (Only the fullscreen element's subtree is visible while in fullscreen, so a
+  // modal portaled to <body> would be hidden, e.g. the completion modal.)
+  const fsEl =
+    (document.fullscreenElement as HTMLElement | null) ??
+    ((document as unknown as { webkitFullscreenElement?: HTMLElement | null })
+      .webkitFullscreenElement ?? null);
+  const portalTarget = fsEl ?? document.body;
+
   return createPortal(
     <div className="modal-backdrop" onMouseDown={handleBackdropClick}>
       <div
@@ -121,6 +130,6 @@ export function Modal(props: ModalProps): React.ReactPortal | null {
         <div className="modal-body">{children}</div>
       </div>
     </div>,
-    document.body,
+    portalTarget,
   );
 }

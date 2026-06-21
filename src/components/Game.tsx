@@ -4,6 +4,7 @@ import { usePuzzleStore } from '@/store/puzzleStore'
 import { loadImage } from '@/api/pixabay'
 import { useElementSize } from '@/hooks/useElementSize'
 import { usePanZoom } from '@/hooks/usePanZoom'
+import { useFullscreen } from '@/hooks/useFullscreen'
 import { PuzzleBoard } from './PuzzleBoard'
 import { Controls } from './Controls'
 import { Timer } from './Timer'
@@ -21,6 +22,8 @@ export function Game() {
 
   const [wrapRef, size] = useElementSize<HTMLDivElement>()
   usePanZoom(wrapRef)
+  const gameRef = useRef<HTMLDivElement>(null)
+  const { isFullscreen, toggle: toggleFullscreen, supported: canFullscreen } = useFullscreen(gameRef)
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [state, setState] = useState<LoadState>('idle')
   const [reloadKey, setReloadKey] = useState(0)
@@ -65,6 +68,17 @@ export function Game() {
     })
   }, [selectedImage, difficulty, img, size.width, size.height])
 
+  // Entering/leaving fullscreen resizes the stage; recentre the board in the
+  // new size once layout settles (no-op until the puzzle is built).
+  useEffect(() => {
+    const stage = wrapRef.current
+    if (!stage) return
+    const id = requestAnimationFrame(() =>
+      usePuzzleStore.getState().centerView(stage.clientWidth, stage.clientHeight),
+    )
+    return () => cancelAnimationFrame(id)
+  }, [isFullscreen, wrapRef])
+
   if (!selectedImage) {
     return (
       <div className="game-empty">
@@ -79,8 +93,12 @@ export function Game() {
   const ready = state === 'ready' && puzzleReady
 
   return (
-    <div className="game">
-      <Controls />
+    <div className="game" ref={gameRef}>
+      <Controls
+        canFullscreen={canFullscreen}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleFullscreen}
+      />
       <div className="game-body">
         <div className="game-stage" ref={wrapRef}>
         {state === 'loading' && (

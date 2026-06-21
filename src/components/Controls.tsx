@@ -10,7 +10,14 @@ function capitalize(s: string): string {
   return s.length ? s[0].toUpperCase() + s.slice(1) : s
 }
 
-export function Controls() {
+interface ControlsProps {
+  /** Whether the Fullscreen API is available (hide the control if not). */
+  canFullscreen?: boolean
+  isFullscreen?: boolean
+  onToggleFullscreen?: () => void
+}
+
+export function Controls({ canFullscreen, isFullscreen, onToggleFullscreen }: ControlsProps = {}) {
   const difficulty = usePuzzleStore((s) => s.difficulty)
   const cols = usePuzzleStore((s) => s.cols)
   const rows = usePuzzleStore((s) => s.rows)
@@ -101,6 +108,18 @@ export function Controls() {
             <Icon name={soundEnabled ? 'sound-on' : 'sound-off'} size={18} />
             <span className="controls-label">{soundEnabled ? 'Sound' : 'Muted'}</span>
           </button>
+          {canFullscreen && (
+            <button
+              type="button"
+              className="btn btn--sm controls-tool controls-tool--toggle"
+              aria-pressed={isFullscreen}
+              onClick={onToggleFullscreen}
+              title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+            >
+              <Icon name={isFullscreen ? 'compress' : 'expand'} size={18} />
+              <span className="controls-label">{isFullscreen ? 'Exit' : 'Full screen'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
