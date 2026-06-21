@@ -202,11 +202,19 @@
   }
 }
 
-/* ── Phones (≤480px): drop the wordmark so the bar never overflows ────────── */
+/* ── Phones (≤480px): keep the wordmark; free space elsewhere ─────────────── */
 @media (max-width: 480px) {
-  /* Glyph-only brand frees the width the action icons + score need. */
-  .header-brand .brand-text {
+  /* Drop the decorative score chip (still shown in the profile) and trim the
+     logo a touch so the "JigsawJam" wordmark fits beside it. */
+  .header-points {
     display: none;
+  }
+  .header-brand .brand-glyph {
+    width: 44px;
+    height: 44px;
+  }
+  .header-brand .brand-text {
+    font-size: 1.02rem;
   }
 }
 
