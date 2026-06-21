@@ -12,23 +12,11 @@
 .brand-glyph {
   display: block;
   flex: none;
-  filter: drop-shadow(0 2px 4px rgba(74, 54, 33, 0.22));
-}
-
-.brand-tile {
-  fill: var(--surface-1);
-  stroke: var(--border-strong);
-  stroke-width: 1.5;
-}
-
-.brand-piece {
-  stroke: var(--accent-deep);
-  stroke-width: 1;
-  stroke-linejoin: round;
-}
-
-.brand-shine {
-  fill: rgba(255, 255, 255, 0.22);
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(74, 54, 33, 0.28));
+  /* Pull the wordmark in slightly; the logo PNG carries its own padding. */
+  margin: calc(var(--brand-size) * -0.12);
+  margin-right: 0;
 }
 
 /* ── Wordmark ──────────────────────────────────────────────────────────── */
