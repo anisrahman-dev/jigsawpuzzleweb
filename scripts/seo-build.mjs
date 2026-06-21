@@ -16,7 +16,9 @@ const DIST = path.join(ROOT, 'dist')
 const CATALOG = path.join(ROOT, 'public', 'catalog')
 const SITE = 'JigsawJam'
 const PAGE_SIZE = 24
-const DEFAULT_DOMAIN = 'https://jigsawjam.com'
+// Canonical host is www (the apex 308-redirects to www), so default there - the
+// deployed sitemap, canonicals and OG URLs should point at the final host.
+const DEFAULT_DOMAIN = 'https://www.jigsawjam.com'
 const OG_IMAGE = '/logo.png' // 512x512 brand logo used for social previews
 const SITE_URL = (process.env.SITE_URL || DEFAULT_DOMAIN).replace(/\/+$/, '')
 const PRERENDER_PUZZLES = process.env.PRERENDER_PUZZLES !== '0'
