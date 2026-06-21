@@ -57,6 +57,8 @@ interface PuzzleState {
   zoomOut: () => void
   /** Move the view by a screen-pixel delta (free, unbounded - 360° pan). */
   panBy: (dx: number, dy: number) => void
+  /** Set zoom and pan together (used by pinch-zoom). */
+  setTransform: (zoom: number, panX: number, panY: number) => void
   /** Reset zoom to 1 and recentre the board. */
   resetView: () => void
   moveGroup: (groupId: number, dx: number, dy: number) => void
@@ -229,6 +231,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
   zoomIn: () => get().zoomAt(get().zoom + ZOOM_STEP, get().surfaceW / 2, get().surfaceH / 2),
   zoomOut: () => get().zoomAt(get().zoom - ZOOM_STEP, get().surfaceW / 2, get().surfaceH / 2),
   panBy: (dx, dy) => set((s) => ({ panX: s.panX + dx, panY: s.panY + dy })),
+  setTransform: (zoom, panX, panY) => set({ zoom: clampZoom(zoom), panX, panY }),
   resetView: () => set({ zoom: 1, panX: 0, panY: 0 }),
 
   moveGroup: (groupId, dx, dy) => {
