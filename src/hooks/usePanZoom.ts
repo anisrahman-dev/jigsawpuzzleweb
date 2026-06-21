@@ -1,37 +1,17 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
-import { usePuzzleStore, ZOOM_MIN, ZOOM_MAX } from '@/store/puzzleStore'
+import { useEffect } from 'react'
+import { usePuzzleStore } from '@/store/puzzleStore'
 
 const WHEEL_STEP = 0.1
 
 /**
- * Wire mouse-wheel zoom (anchored to the cursor) and drag-to-pan onto the play
- * stage (the scroll container that holds the zoomable surface).
+ * Wire mouse-wheel zoom (anchored to the cursor) and free drag-to-pan onto the
+ * play stage. Pan is applied as an unbounded CSS translate (see puzzleStore),
+ * so the board moves in any direction - not limited to a scroll range.
  * - Wheel up/down zooms in/out, keeping the point under the cursor fixed.
- * - Press-and-drag on empty board area pans the view (mouse only; touch keeps
- *   the browser's native panning so it never fights piece dragging).
+ * - Right-button drag pans anywhere (even over a piece). Left-button / single
+ *   finger pans on empty board area only, so it never steals piece dragging.
  */
 export function usePanZoom(stageRef: React.RefObject<HTMLElement | null>): void {
-  const zoom = usePuzzleStore((s) => s.zoom)
-  // Cursor anchor carried across the zoom-driven re-layout.
-  const pending = useRef<{
-    contentX: number
-    contentY: number
-    offsetX: number
-    offsetY: number
-    ratio: number
-  } | null>(null)
-
-  // After a wheel-zoom resizes the surface, restore scroll so the cursor stays
-  // over the same content point (runs post-layout, pre-paint = no flicker).
-  useLayoutEffect(() => {
-    const el = stageRef.current
-    const p = pending.current
-    if (!el || !p) return
-    pending.current = null
-    el.scrollLeft = p.contentX * p.ratio - p.offsetX
-    el.scrollTop = p.contentY * p.ratio - p.offsetY
-  }, [zoom, stageRef])
-
   useEffect(() => {
     const el = stageRef.current
     if (!el) return
@@ -39,34 +19,22 @@ export function usePanZoom(stageRef: React.RefObject<HTMLElement | null>): void 
     const onWheel = (e: WheelEvent): void => {
       e.preventDefault()
       const store = usePuzzleStore.getState()
-      const old = store.zoom
       const dir = e.deltaY < 0 ? 1 : -1
-      const next = Math.round(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, old + dir * WHEEL_STEP)) * 100) / 100
-      if (next === old) return
       const rect = el.getBoundingClientRect()
-      const offsetX = e.clientX - rect.left
-      const offsetY = e.clientY - rect.top
-      pending.current = {
-        contentX: el.scrollLeft + offsetX,
-        contentY: el.scrollTop + offsetY,
-        offsetX,
-        offsetY,
-        ratio: next / old,
-      }
-      store.setZoom(next)
+      store.zoomAt(store.zoom + dir * WHEEL_STEP, e.clientX - rect.left, e.clientY - rect.top)
     }
 
-    // Drag-to-pan (mouse only). Touch relies on native pan-x/pan-y scrolling.
-    // Right button pans anywhere (even over a piece); left button pans only on
-    // empty board area so it doesn't steal piece dragging.
-    let pan: { x: number; y: number; sl: number; st: number; id: number } | null = null
+    // Free drag-to-pan. Tracks the last pointer position and feeds deltas to
+    // panBy, so the board follows the pointer in any direction.
+    let pan: { x: number; y: number; id: number } | null = null
     const onPointerDown = (e: PointerEvent): void => {
-      if (e.pointerType !== 'mouse') return
       const t = e.target as Element | null
+      const overPiece = !!t?.closest('.piece')
       const rightDrag = e.button === 2
-      const leftOnEmpty = e.button === 0 && !t?.closest('.piece')
-      if (!rightDrag && !leftOnEmpty) return
-      pan = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop, id: e.pointerId }
+      // Left mouse / single-finger pan only on empty area (pieces own their drag).
+      const emptyDrag = !overPiece && (e.button === 0 || e.pointerType === 'touch')
+      if (!rightDrag && !emptyDrag) return
+      pan = { x: e.clientX, y: e.clientY, id: e.pointerId }
       try {
         el.setPointerCapture(e.pointerId)
       } catch {
@@ -74,12 +42,11 @@ export function usePanZoom(stageRef: React.RefObject<HTMLElement | null>): void 
       }
       el.classList.add('is-panning')
     }
-    // Right-drag pans, so never pop the browser context menu over the stage.
-    const onContextMenu = (e: MouseEvent): void => e.preventDefault()
     const onPointerMove = (e: PointerEvent): void => {
       if (!pan) return
-      el.scrollLeft = pan.sl - (e.clientX - pan.x)
-      el.scrollTop = pan.st - (e.clientY - pan.y)
+      usePuzzleStore.getState().panBy(e.clientX - pan.x, e.clientY - pan.y)
+      pan.x = e.clientX
+      pan.y = e.clientY
     }
     const endPan = (): void => {
       if (!pan) return
@@ -91,6 +58,8 @@ export function usePanZoom(stageRef: React.RefObject<HTMLElement | null>): void 
       }
       pan = null
     }
+    // Right-drag pans, so never pop the browser context menu over the stage.
+    const onContextMenu = (e: MouseEvent): void => e.preventDefault()
 
     el.addEventListener('wheel', onWheel, { passive: false })
     el.addEventListener('pointerdown', onPointerDown)

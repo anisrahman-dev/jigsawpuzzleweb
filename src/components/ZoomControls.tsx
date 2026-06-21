@@ -25,9 +25,9 @@ export function ZoomControls() {
       <button
         type="button"
         className="zoomctl-pct"
-        onClick={() => usePuzzleStore.getState().setZoom(1)}
-        aria-label={`Zoom ${pct} percent. Click to reset.`}
-        title="Reset zoom"
+        onClick={() => usePuzzleStore.getState().resetView()}
+        aria-label={`Zoom ${pct} percent. Click to reset view.`}
+        title="Reset view"
       >
         {pct}%
       </button>

@@ -44,13 +44,21 @@ interface PuzzleState {
   lastSnap: { groupId: number; at: number } | null
   /** View zoom factor for the play surface (1 = fit). */
   zoom: number
+  /** Free pan offset of the surface, in screen px (translate before scale). */
+  panX: number
+  panY: number
 
   setup: (args: SetupArgs) => void
   bringToFront: (groupId: number) => number
   setDragging: (groupId: number | null) => void
-  setZoom: (zoom: number) => void
+  /** Zoom to `z`, keeping the stage point (cx, cy) fixed under the cursor. */
+  zoomAt: (z: number, cx: number, cy: number) => void
   zoomIn: () => void
   zoomOut: () => void
+  /** Move the view by a screen-pixel delta (free, unbounded - 360° pan). */
+  panBy: (dx: number, dy: number) => void
+  /** Reset zoom to 1 and recentre the board. */
+  resetView: () => void
   moveGroup: (groupId: number, dx: number, dy: number) => void
   dropGroup: (groupId: number) => void
   scatter: () => void
@@ -83,6 +91,8 @@ const initial = {
   draggingGroupId: null as number | null,
   lastSnap: null as { groupId: number; at: number } | null,
   zoom: 1,
+  panX: 0,
+  panY: 0,
 }
 
 export const ZOOM_MIN = 0.5
@@ -207,9 +217,19 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
 
   setDragging: (groupId) => set({ draggingGroupId: groupId }),
 
-  setZoom: (zoom) => set({ zoom: clampZoom(zoom) }),
-  zoomIn: () => set((s) => ({ zoom: clampZoom(s.zoom + ZOOM_STEP) })),
-  zoomOut: () => set((s) => ({ zoom: clampZoom(s.zoom - ZOOM_STEP) })),
+  zoomAt: (z, cx, cy) =>
+    set((s) => {
+      const zoom = clampZoom(z)
+      if (zoom === s.zoom) return {}
+      // Keep the surface point under (cx, cy) fixed: screen = surf*zoom + pan.
+      const surfX = (cx - s.panX) / s.zoom
+      const surfY = (cy - s.panY) / s.zoom
+      return { zoom, panX: cx - surfX * zoom, panY: cy - surfY * zoom }
+    }),
+  zoomIn: () => get().zoomAt(get().zoom + ZOOM_STEP, get().surfaceW / 2, get().surfaceH / 2),
+  zoomOut: () => get().zoomAt(get().zoom - ZOOM_STEP, get().surfaceW / 2, get().surfaceH / 2),
+  panBy: (dx, dy) => set((s) => ({ panX: s.panX + dx, panY: s.panY + dy })),
+  resetView: () => set({ zoom: 1, panX: 0, panY: 0 }),
 
   moveGroup: (groupId, dx, dy) => {
     set((s) => {

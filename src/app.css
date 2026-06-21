@@ -74,8 +74,10 @@ body {
 .game-stage {
   position: relative;
   flex: 1;
-  /* Scroll/pan when the board is zoomed past the visible area. */
-  overflow: auto;
+  /* The board is panned/zoomed via CSS transform; clip the overflow. */
+  overflow: hidden;
+  /* Gestures (pan/zoom/piece-drag) are handled in JS, not native scroll. */
+  touch-action: none;
   /* Warm tabletop around the cork board */
   background-color: var(--bg-2);
   background-image:
@@ -165,9 +167,8 @@ body {
      threshold (the board needs >= 320px in each axis to render). */
   .game-stage {
     min-height: 340px;
-    /* Pieces own their own drags (touch-action:none on each); the stage allows
-       finger panning so a zoomed-in board stays reachable. */
-    touch-action: pan-x pan-y;
+    /* Pan/zoom/piece-drag are all JS-driven; keep the browser out of it. */
+    touch-action: none;
   }
   .game-empty {
     padding: 24px 18px;

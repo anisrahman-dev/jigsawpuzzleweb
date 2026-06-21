@@ -19,6 +19,8 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
   const showGhost = usePuzzleStore((s) => s.showGhost)
   const image = usePuzzleStore((s) => s.image)
   const zoom = usePuzzleStore((s) => s.zoom)
+  const panX = usePuzzleStore((s) => s.panX)
+  const panY = usePuzzleStore((s) => s.panY)
   const lastSnap = usePuzzleStore((s) => s.lastSnap)
   const status = usePuzzleStore((s) => s.status)
 
@@ -115,19 +117,16 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
   useEffect(() => endDrag, [endDrag])
 
   return (
-    // Wrapper carries the scaled footprint so the stage can scroll/pan when
-    // zoomed in; the inner surface scales from its top-left corner.
-    <div
-      className="surface-wrap"
-      style={{ width: surfaceW * zoom, height: surfaceH * zoom, margin: '0 auto' }}
-    >
+    // The surface is freely translated + scaled (pan & zoom) from its top-left;
+    // the stage clips it. Pan is unbounded so the board moves in any direction.
+    <div className="surface-layer">
       <div
         className="surface"
         style={{
           position: 'relative',
           width: surfaceW,
           height: surfaceH,
-          transform: `scale(${zoom})`,
+          transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
           transformOrigin: '0 0',
           touchAction: 'none',
         }}
