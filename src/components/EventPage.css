@@ -95,6 +95,10 @@
   font-weight: 600;
   color: rgba(255, 255, 255, 0.78);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.evpage-when svg {
+  flex: none;
 }
 
 .evpage-desc {

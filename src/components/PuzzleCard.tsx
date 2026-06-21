@@ -35,7 +35,7 @@ function thumbSources(url: string, thumbUrl: string): { src: string; srcSet?: st
  * PuzzleCard - an image-forward gallery card. The photo fills the tile with the
  * title & photographer overlaid on a soft gradient; a piece-count badge sits
  * top-right and an optional tag ribbon top-left. The whole card opens the start
- * preview; on hover it lifts, the image gently zooms, and a "Play" pill appears.
+ * preview; on hover it lifts and the image gently zooms.
  */
 export function PuzzleCard({ puzzle }: { puzzle: GalleryPuzzle }) {
   const tag = puzzle.tag
@@ -69,11 +69,6 @@ export function PuzzleCard({ puzzle }: { puzzle: GalleryPuzzle }) {
           {TAG_LABEL[tag]}
         </span>
       )}
-
-      <span className="card-play" aria-hidden="true">
-        <Icon name="play" size={16} />
-        Play
-      </span>
 
       <span className="card-info">
         <span className="card-title" title={`by ${puzzle.author}`}>

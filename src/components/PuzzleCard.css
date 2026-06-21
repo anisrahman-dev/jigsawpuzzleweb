@@ -127,39 +127,6 @@
   text-overflow: ellipsis;
 }
 
-/* "Play" pill - centred, fades in on hover/focus */
-.card-play {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  z-index: 3;
-  transform: translate(-50%, -50%) scale(0.9);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 18px 9px 15px;
-  border-radius: var(--r-pill);
-  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: var(--on-accent);
-  font-weight: 700;
-  font-size: 0.92rem;
-  line-height: 1;
-  box-shadow: 0 8px 20px rgba(31, 99, 196, 0.5);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity var(--dur) var(--ease),
-    transform var(--dur) var(--ease-out-back);
-}
-.card-play svg {
-  display: block;
-}
-.card-root:hover .card-play,
-.card-root:focus-visible .card-play {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
 @media (max-width: 600px) {
   .card-info {
     padding: 10px 12px;
@@ -169,13 +136,6 @@
   }
   .card-author {
     font-size: 0.78rem;
-  }
-  /* Touch devices can't hover; surface the Play pill so it's discoverable. */
-  .card-play {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-    padding: 8px 16px 8px 13px;
-    font-size: 0.86rem;
   }
 }
 
@@ -191,8 +151,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .card-root,
-  .card-img,
-  .card-play {
+  .card-img {
     transition: none;
   }
   .card-root:hover,
