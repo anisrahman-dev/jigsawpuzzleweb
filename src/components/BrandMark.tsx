@@ -15,8 +15,8 @@ const LOGO_SRC = `${import.meta.env.BASE_URL}logo.png`;
  * paired with the serif wordmark.
  */
 export function BrandMark({ size = 30, showText = true }: BrandMarkProps = {}) {
-  // The rendered glyph is a touch larger than the wordmark cap-height reads.
-  const glyphSize = Math.round(size * 1.3);
+  // The rendered glyph is noticeably larger than the wordmark cap-height reads.
+  const glyphSize = Math.round(size * 1.7);
   return (
     <span
       className="brand"
