@@ -6,10 +6,6 @@ import { useUiStore } from '@/store/uiStore'
 import { playToggle } from '@/lib/sound'
 import './Controls.css'
 
-function capitalize(s: string): string {
-  return s.length ? s[0].toUpperCase() + s.slice(1) : s
-}
-
 interface ControlsProps {
   /** Whether the Fullscreen API is available (hide the control if not). */
   canFullscreen?: boolean
@@ -18,17 +14,12 @@ interface ControlsProps {
 }
 
 export function Controls({ canFullscreen, isFullscreen, onToggleFullscreen }: ControlsProps = {}) {
-  const difficulty = usePuzzleStore((s) => s.difficulty)
-  const cols = usePuzzleStore((s) => s.cols)
-  const rows = usePuzzleStore((s) => s.rows)
   const showGhost = usePuzzleStore((s) => s.showGhost)
   const hideTimer = usePrefsStore((s) => s.hideTimer)
   const soundEnabled = usePrefsStore((s) => s.soundEnabled)
 
   // Two-step shuffle: a mis-tap shouldn't destroy a half-solved board.
   const [confirmingShuffle, setConfirmingShuffle] = useState(false)
-
-  const pieceCount = cols * rows
 
   const goHome = (): void => useUiStore.getState().goHome()
   const togglePreview = (): void => usePuzzleStore.getState().toggleGhost()
@@ -57,16 +48,6 @@ export function Controls({ canFullscreen, isFullscreen, onToggleFullscreen }: Co
             <Icon name="arrow-left" size={18} />
             <span className="controls-label">Gallery</span>
           </button>
-        </div>
-
-        <div className="controls-center">
-          <span className="controls-difficulty">{capitalize(difficulty)}</span>
-          <span className="controls-dot" aria-hidden="true">
-            ·
-          </span>
-          <span className="controls-count">
-            {pieceCount} {pieceCount === 1 ? 'piece' : 'pieces'}
-          </span>
         </div>
 
         <div className="controls-right">
