@@ -258,8 +258,8 @@ export function CategoryPage() {
             const start = (current - 1) * PAGE_SIZE
             const slice = all.slice(start, start + PAGE_SIZE)
             const goTo = (p: number) => {
+              // Scroll-to-top is handled centrally on navigation (see App.tsx).
               useUiStore.getState().setCategoryPage(p)
-              window.scrollTo({ top: 0, behavior: 'smooth' })
             }
             return (
               <>

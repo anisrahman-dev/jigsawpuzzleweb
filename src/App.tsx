@@ -50,13 +50,12 @@ export function App() {
     if (url !== currentUrl()) window.history.pushState(null, '', url)
   }, [view, selectedCategory, selectedEvent, categoryPage, puzzleRoute])
 
-  // Reset scroll to the top when navigating to a new view/category/event/puzzle,
-  // so a page never opens scrolled partway down (e.g. landing at the bottom of a
-  // category after scrolling the previous list). Pagination handles its own
-  // smooth scroll, so categoryPage is intentionally excluded here.
+  // Always open a new page at the top: reset scroll on any navigation - a new
+  // view, category, event, puzzle, or page of results - so nothing ever opens
+  // scrolled partway down.
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [view, selectedCategory, selectedEvent, puzzleRoute])
+  }, [view, selectedCategory, selectedEvent, puzzleRoute, categoryPage])
 
   return (
     <>
