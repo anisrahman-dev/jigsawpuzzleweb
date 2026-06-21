@@ -18,11 +18,6 @@ export function Controls() {
   const goHome = (): void => useUiStore.getState().goHome()
   const shuffle = (): void => usePuzzleStore.getState().scatter()
   const togglePreview = (): void => usePuzzleStore.getState().toggleGhost()
-  const solve = (): void => {
-    if (window.confirm('Auto-solve the whole puzzle?')) {
-      usePuzzleStore.getState().autoSolve()
-    }
-  }
 
   return (
     <div className="controls-bar">
@@ -57,10 +52,6 @@ export function Controls() {
           >
             <Icon name={showGhost ? 'eye-off' : 'eye'} size={18} />
             <span className="controls-label">Preview</span>
-          </button>
-          <button type="button" className="btn btn--sm controls-tool" onClick={solve}>
-            <Icon name="check" size={18} />
-            <span className="controls-label">Solve</span>
           </button>
         </div>
       </div>
