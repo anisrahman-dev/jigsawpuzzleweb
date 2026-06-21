@@ -1,0 +1,259 @@
+/* Hero - "Sunlit Puzzle Table" spotlight banner */
+
+.hero {
+  position: relative;
+  margin: 8px auto 28px;
+  padding: clamp(24px, 4vw, 44px);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background:
+    radial-gradient(620px 360px at 0% 0%, var(--accent-softer), transparent 70%),
+    radial-gradient(520px 420px at 100% 110%, var(--sage-soft), transparent 72%),
+    linear-gradient(180deg, var(--paper-edge), var(--surface-1));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: clamp(24px, 4vw, 56px);
+}
+
+/* ── Left copy ─────────────────────────────────────────────────────────── */
+.hero-copy {
+  min-width: 0;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.hero-eyebrow-icon {
+  color: var(--accent);
+}
+
+.hero-title {
+  margin-top: 18px;
+  font-size: clamp(2.3rem, 5.2vw, 3.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+  margin: 18px 0 0;
+  max-width: 44ch;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 28px;
+}
+.hero-cta {
+  min-width: 168px;
+}
+.hero-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Right art: tilted framed photo ───────────────────────────────────── */
+.hero-art {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+}
+
+.hero-frame {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  padding: 14px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(155deg, var(--paper-edge), var(--surface-2));
+  border: 1px solid var(--border);
+  box-shadow:
+    var(--shadow-lg),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  transform: rotate(-3deg);
+  transition: transform var(--dur) var(--ease);
+}
+.hero:hover .hero-frame {
+  transform: rotate(-1.4deg) translateY(-2px);
+}
+
+/* warm rim glow behind the frame */
+.hero-frame::before {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  z-index: -1;
+  border-radius: var(--r-xl);
+  background: radial-gradient(closest-side, var(--accent-ring), transparent 78%);
+  opacity: 0.6;
+  filter: blur(6px);
+}
+
+.hero-photo {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface-3);
+  box-shadow: 0 2px 8px rgba(40, 26, 12, 0.28) inset;
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* faint jigsaw cut lines suggesting a partially-assembled puzzle */
+.hero-cut {
+  position: absolute;
+  background: rgba(40, 26, 12, 0.16);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+.hero-cut--v {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1.5px;
+}
+.hero-cut--h {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1.5px;
+}
+.hero-knob {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(40, 26, 12, 0.12);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+.hero-knob--top {
+  top: calc(50% - 8px);
+  left: calc(25% - 8px);
+}
+.hero-knob--right {
+  top: calc(75% - 8px);
+  left: calc(50% - 8px);
+}
+
+/* ── Loose decorative pieces ──────────────────────────────────────────── */
+.hero-piece {
+  position: absolute;
+  display: block;
+  filter: drop-shadow(var(--shadow-piece));
+}
+.hero-piece--a {
+  width: 56px;
+  height: 56px;
+  bottom: -10px;
+  left: 2%;
+  color: var(--accent);
+  transform: rotate(-18deg);
+}
+.hero-piece--b {
+  width: 40px;
+  height: 40px;
+  top: -6px;
+  right: 6%;
+  color: var(--sage);
+  transform: rotate(22deg);
+}
+
+/* ── Responsive: stack, text first ────────────────────────────────────── */
+@media (max-width: 760px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .hero-art {
+    order: 2;
+  }
+  .hero-frame {
+    max-width: 380px;
+    transform: rotate(-2deg);
+  }
+  .hero-cta {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    margin: 6px auto 22px;
+    padding: clamp(20px, 5vw, 28px);
+    border-radius: var(--r-lg);
+  }
+  .hero-inner {
+    gap: 26px;
+  }
+  .hero-frame {
+    max-width: 320px;
+    padding: 10px;
+  }
+  /* Loose decorative pieces crowd the edges on phones — pull them in / shrink. */
+  .hero-piece--a {
+    width: 40px;
+    height: 40px;
+    bottom: -6px;
+  }
+  .hero-piece--b {
+    width: 30px;
+    height: 30px;
+  }
+  .hero-cta {
+    min-width: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .hero {
+    padding: 18px 16px;
+  }
+  .hero-actions {
+    gap: 10px;
+  }
+  /* Decorative pieces overflow the tight frame at 360px — hide them. */
+  .hero-piece--a,
+  .hero-piece--b {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-frame,
+  .hero:hover .hero-frame {
+    transition: none;
+    transform: rotate(-2deg);
+  }
+}

@@ -1,0 +1,254 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   CompletionModal - "Sunlit Puzzle Table" celebration
+   Warm cream surface, marigold→terracotta confetti, espresso stats. All color
+   from theme.css tokens. Reduced-motion aware. Classes prefixed `.done-`.
+   ─────────────────────────────────────────────────────────────────────────── */
+.done-root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+  padding-top: 4px;
+}
+
+/* ── Trophy crest ─────────────────────────────────────────────────────────── */
+.done-trophy {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-pill);
+  color: var(--on-accent);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  box-shadow: 0 8px 20px rgba(31, 99, 196, 0.32), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+
+/* ── Confetti ribbons ─────────────────────────────────────────────────────── */
+.done-confetti {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  right: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.done-ribbon {
+  position: absolute;
+  top: 0;
+  width: 7px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  transform: translateY(-14px);
+  animation-name: done-fall;
+  animation-timing-function: var(--ease);
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+.done-ribbon--0 {
+  background: var(--accent);
+}
+.done-ribbon--1 {
+  background: var(--accent-strong);
+}
+.done-ribbon--2 {
+  background: var(--accent-deep);
+  width: 6px;
+  height: 10px;
+}
+.done-ribbon--3 {
+  background: var(--sage);
+  width: 6px;
+  height: 12px;
+}
+
+@keyframes done-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px) rotate(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(170px) rotate(420deg);
+  }
+}
+
+/* ── Solved thumbnail ─────────────────────────────────────────────────────── */
+.done-figure {
+  position: relative;
+  margin: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.done-thumb {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  background: var(--surface-2);
+}
+.done-seal {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-accent);
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  box-shadow: 0 6px 16px rgba(31, 99, 196, 0.35), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  transform: rotate(8deg);
+}
+.done-credit {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  max-width: 260px;
+}
+
+.done-lede {
+  margin: 0;
+  z-index: 1;
+  font-size: 0.98rem;
+  color: var(--text-muted);
+}
+
+/* Points earned */
+.done-points {
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-weight: 800;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+.done-bonus {
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: var(--on-accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+/* ── Stats ────────────────────────────────────────────────────────────────── */
+.done-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  z-index: 1;
+}
+.done-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+}
+.done-stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.done-stat-icon {
+  color: var(--accent-strong);
+}
+.done-stat-value {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-deep);
+  line-height: 1;
+}
+
+/* ── Actions ──────────────────────────────────────────────────────────────── */
+.done-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  z-index: 1;
+}
+.done-action {
+  flex: 1 1 160px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .done-root {
+    gap: 14px;
+  }
+  .done-stats {
+    gap: 8px;
+  }
+  .done-stat {
+    padding: 11px 6px;
+  }
+  .done-stat-value {
+    font-size: 1.3rem;
+  }
+  .done-stat-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+  }
+  .done-action {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 400px) {
+  .done-action {
+    flex-basis: 100%;
+  }
+  .done-thumb {
+    max-width: 200px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .done-confetti {
+    display: none;
+  }
+  .done-seal {
+    transform: none;
+  }
+}

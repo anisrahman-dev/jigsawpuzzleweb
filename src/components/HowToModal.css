@@ -1,0 +1,149 @@
+/* ── HowToModal · "Sunlit Puzzle Table" ────────────────────────────────────
+   Friendly icon-illustrated numbered steps on warm paper. Accent numerals.
+   ─────────────────────────────────────────────────────────────────────── */
+
+.howto-intro {
+  margin: 0 0 18px;
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.howto-list {
+  list-style: none;
+  counter-reset: howto;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.howto-step {
+  counter-increment: howto;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  column-gap: 14px;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-xs);
+  transition: background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.howto-step:hover {
+  background: var(--surface-1);
+  border-color: var(--border);
+  transform: translateX(2px);
+}
+
+/* Accent step numeral - a warm marigold token disc. */
+.howto-step__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
+  border: 1px solid var(--accent-ring);
+  flex: none;
+}
+.howto-step__num::before {
+  content: counter(howto);
+}
+
+/* Accent-soft icon circle - matches the numeral disc, in a calmer tint. */
+.howto-step__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  border: 1px solid var(--accent-ring);
+  flex: none;
+}
+
+.howto-step__body {
+  margin: 0;
+  line-height: 1.45;
+  font-size: 0.97rem;
+  color: var(--text);
+}
+.howto-step__body strong {
+  color: var(--accent-deep);
+  font-weight: 700;
+}
+
+.howto-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.howto-footnote {
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .howto-intro {
+    font-size: 0.94rem;
+    margin-bottom: 14px;
+  }
+  .howto-step__body {
+    font-size: 0.92rem;
+  }
+}
+
+@media (max-width: 460px) {
+  .howto-step {
+    column-gap: 10px;
+    padding: 11px 12px;
+  }
+  .howto-step__icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 400px) {
+  /* Drop the decorative icon so the numeral + text keep full width. */
+  .howto-step {
+    grid-template-columns: auto 1fr;
+    column-gap: 10px;
+  }
+  .howto-step__icon {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .howto-step {
+    transition: none;
+  }
+  .howto-step:hover {
+    transform: none;
+  }
+}

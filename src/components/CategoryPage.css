@@ -1,0 +1,217 @@
+.catpg {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 20px 20px 72px;
+}
+
+/* Breadcrumb */
+.catpg-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.catpg-crumb {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--accent-strong);
+  cursor: pointer;
+  padding: 2px 2px;
+}
+.catpg-crumb:hover {
+  text-decoration: underline;
+}
+.catpg-crumb.is-current {
+  color: var(--text-muted);
+  cursor: default;
+}
+.catpg-sep {
+  color: var(--text-faint);
+}
+
+/* Title + description */
+.catpg-head {
+  margin-bottom: 26px;
+  max-width: 70ch;
+}
+.catpg-title {
+  font-size: 2.3rem;
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+.catpg-desc {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1.12rem;
+  line-height: 1.6;
+}
+.catpg-count {
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 0.98rem;
+}
+.catpg-count strong {
+  color: var(--accent-strong);
+}
+
+/* FAQ - visible content mirrored as FAQPage JSON-LD (for Google + AI answers) */
+.catpg-faq {
+  margin-top: 48px;
+  max-width: 75ch;
+}
+.catpg-faq-title {
+  font-size: 1.5rem;
+  margin: 0 0 18px;
+}
+.catpg-faq-list {
+  margin: 0;
+}
+.catpg-faq-item {
+  padding: 16px 0;
+  border-top: 1px solid var(--surface-3);
+}
+.catpg-faq-item dt {
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.catpg-faq-item dd {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.catpg-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 70px 0;
+  color: var(--text-muted);
+}
+.catpg-note {
+  background: var(--accent-softer);
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  font-size: 1.02rem;
+}
+.catpg-note p {
+  margin: 0;
+}
+
+.catpg-foot {
+  margin-top: 34px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Pager ──────────────────────────────────────────────────────────────── */
+.catpg-pager {
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.catpg-page {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  justify-content: center;
+  border: 1px solid var(--surface-3);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.catpg-page:hover:not(:disabled):not(.is-current) {
+  background: var(--surface-2);
+  border-color: var(--accent-ring);
+}
+.catpg-page.is-current {
+  background: linear-gradient(180deg, var(--accent-strong) 0%, var(--accent-deep) 100%);
+  border-color: var(--accent-deep);
+  color: #fff;
+  cursor: default;
+}
+.catpg-page:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.catpg-page--nav {
+  font-weight: 700;
+}
+.catpg-gap {
+  padding: 0 4px;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+@media (max-width: 600px) {
+  .catpg {
+    padding: 16px 14px 56px;
+  }
+  .catpg-title {
+    font-size: 1.7rem;
+  }
+  .catpg-desc {
+    font-size: 1.02rem;
+  }
+  /* Two-up puzzle grid on phones so cards stay sensibly sized. */
+  .catpg .puzzle-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  /* Keep the pager compact on phones: it already wraps + centres. */
+  .catpg-page {
+    padding: 0 10px;
+    font-size: 0.95rem;
+  }
+  .catpg-page--nav {
+    padding: 0 10px;
+  }
+  .catpg-faq {
+    margin-top: 36px;
+  }
+  .catpg-faq-title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .catpg {
+    padding: 14px 12px 48px;
+  }
+  .catpg-title {
+    font-size: 1.45rem;
+  }
+  .catpg-desc {
+    font-size: 0.98rem;
+  }
+  .catpg-crumbs {
+    font-size: 0.88rem;
+  }
+  /* Single column when very narrow to keep card titles readable. */
+  .catpg .puzzle-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .catpg-page {
+    min-width: 38px;
+    padding: 0 8px;
+  }
+}

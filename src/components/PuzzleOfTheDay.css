@@ -1,0 +1,337 @@
+/* Puzzle of the Day - a compact split card: photo left (with a floating
+   piece-count badge), structured copy + CTA right. White theme +
+   marigold->terracotta accent, one tasteful clickable surface. The right side
+   is a 3-row grid (head / title / meta+foot) with a faint jigsaw dot motif and
+   friendly rounded chips, so the space reads as intentional. Tokens only. */
+.potd {
+  margin-top: 26px;
+}
+
+/* Layered, elevated surface. The ::before (on the body) adds a subtle
+   jigsaw-piece dot motif; ::after paints a soft accent border-glow that fades
+   in on hover/focus. A warm radial wash + white->surface-2 base anchor it. */
+.potd-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 214px 1fr;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(140% 130% at 30% 0%, var(--accent-softer) 0%, rgba(251, 241, 226, 0) 52%),
+    linear-gradient(180deg, var(--surface-1) 0%, var(--surface-2) 100%);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+/* accent border-glow ring, just inside the edge, fades in on hover */
+.potd-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(224, 146, 47, 0);
+  transition: box-shadow var(--dur-fast) var(--ease);
+}
+.potd-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-soft);
+  box-shadow: var(--shadow-md);
+}
+.potd-card:hover::after {
+  box-shadow: inset 0 0 0 1px var(--accent-soft);
+}
+.potd-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring), var(--shadow-md);
+}
+
+/* ---- Media (left) ------------------------------------------------------ */
+.potd-media {
+  position: relative;
+  overflow: hidden;
+}
+.potd-img {
+  width: 100%;
+  height: 100%;
+  min-height: 162px;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--dur-slow) var(--ease);
+}
+.potd-card:hover .potd-img {
+  transform: scale(1.05);
+}
+/* soft inner seam so the photo melts into the warm panel rather than a hard cut,
+   plus a faint corner scrim that keeps the glass badge legible over any photo */
+.potd-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset -16px 0 22px -15px rgba(31, 35, 40, 0.26);
+  background: linear-gradient(35deg, rgba(17, 24, 39, 0.3) 0%, rgba(17, 24, 39, 0) 40%);
+}
+/* floating piece-count badge, frosted over the bottom-left of the photo */
+.potd-badge {
+  position: absolute;
+  z-index: 1;
+  left: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(7px) saturate(1.3);
+  backdrop-filter: blur(7px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.potd-badge b {
+  font-weight: 800;
+}
+.potd-badge svg {
+  color: var(--accent-strong);
+}
+
+/* ---- Body (right) ------------------------------------------------------ */
+.potd-body {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 7px;
+  padding: 18px 22px;
+  min-width: 0;
+}
+/* playful jigsaw motif: a faint dotted "piece" texture, masked so it stays subtle */
+.potd-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image: radial-gradient(var(--accent-soft) 1.3px, transparent 1.5px);
+  background-size: 15px 15px;
+  -webkit-mask-image: linear-gradient(110deg, transparent 40%, #000 135%);
+  mask-image: linear-gradient(110deg, transparent 40%, #000 135%);
+}
+.potd-body > * {
+  position: relative;
+}
+
+/* head row: brand-style eyebrow left, quiet date tag pushed right */
+.potd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.potd-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+.potd-eyebrow svg {
+  color: var(--accent-strong);
+}
+.potd-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow-xs);
+}
+.potd-date svg {
+  color: var(--accent-strong);
+}
+
+/* title - serif, two-line clamp keeps the card compact regardless of length */
+.potd-title {
+  align-self: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.14;
+  letter-spacing: -0.012em;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* meta row: author + a friendly difficulty chip, with the CTA pushed right */
+.potd-meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.potd-author {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.potd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.potd-chip svg {
+  color: var(--text-faint);
+}
+.potd-chip--accent {
+  background: var(--accent-softer);
+  border-color: var(--accent-soft);
+  color: var(--accent-deep);
+}
+.potd-chip--accent svg {
+  color: var(--accent-strong);
+}
+
+/* foot row: confident gradient CTA anchored bottom-right */
+.potd-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+.potd-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.005em;
+  box-shadow: 0 4px 14px rgba(31, 99, 196, 0.34);
+  transition:
+    box-shadow var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+.potd-card:hover .potd-cta {
+  box-shadow: 0 6px 18px rgba(31, 99, 196, 0.42);
+  transform: translateY(-1px);
+}
+.potd-cta svg {
+  transition: transform var(--dur-fast) var(--ease);
+}
+.potd-card:hover .potd-cta svg {
+  transform: translateX(3px);
+}
+
+/* ---- Mobile (stack photo over body) ------------------------------------ */
+@media (max-width: 560px) {
+  .potd-card {
+    grid-template-columns: 1fr;
+  }
+  .potd-media::after {
+    box-shadow: inset 0 -16px 22px -15px rgba(31, 35, 40, 0.26);
+    background: linear-gradient(0deg, rgba(17, 24, 39, 0.3) 0%, rgba(17, 24, 39, 0) 32%);
+  }
+  .potd-img {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+  .potd-body {
+    padding: 16px 18px 18px;
+    gap: 9px;
+  }
+  .potd-title {
+    font-size: 1.3rem;
+  }
+  .potd-meta {
+    flex-wrap: wrap;
+  }
+  .potd-foot {
+    justify-content: stretch;
+  }
+  .potd-cta {
+    flex: 1;
+    justify-content: center;
+    padding: 12px 20px;
+  }
+}
+
+@media (max-width: 400px) {
+  .potd {
+    margin-top: 20px;
+  }
+  .potd-head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .potd-body {
+    padding: 14px 16px 16px;
+  }
+  .potd-title {
+    font-size: 1.2rem;
+  }
+  .potd-meta {
+    gap: 7px;
+  }
+}
+
+/* ---- Reduced motion ---------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .potd-card,
+  .potd-card::after,
+  .potd-img,
+  .potd-cta,
+  .potd-cta svg {
+    transition: none;
+  }
+  .potd-card:hover,
+  .potd-card:hover .potd-img,
+  .potd-card:hover .potd-cta,
+  .potd-card:hover .potd-cta svg {
+    transform: none;
+  }
+}

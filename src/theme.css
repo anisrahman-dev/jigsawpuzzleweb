@@ -1,0 +1,333 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Jigsaw Studio - Design System  ·  "Sunlit Puzzle Table"
+   Warm premium-light theme. Cream paper surfaces, walnut/cork board, marigold→
+   terracotta accent, espresso ink, a refined serif for display. Decorative but
+   restrained. EVERY component styles itself from these tokens & primitives.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* ── Surfaces (clean white) ────────────────────────────────────────────── */
+  --bg: #ffffff;            /* page - white */
+  --bg-2: #f5f6f8;          /* faint cool wash */
+  --surface-1: #ffffff;     /* cards - white */
+  --surface-2: #f6f7f9;     /* sunken */
+  --surface-3: #eceef1;     /* pressed / track */
+  --paper-edge: #ffffff;    /* top highlight */
+
+  /* ── Board (classic cork/walnut mat) ───────────────────────────────────── */
+  --board-felt: #b8966a;    /* warm cork */
+  --board-felt-2: #a07f55;  /* cork shadow */
+  --board-rim: #6f5638;     /* walnut rim */
+
+  /* ── Ink (neutral) ─────────────────────────────────────────────────────── */
+  --text: #1f2328;          /* near-black ink */
+  --text-muted: #5b6470;    /* muted slate */
+  --text-faint: #6b7280;    /* faint slate (AA on white) */
+  --on-accent: #ffffff;     /* text on accent */
+  --on-board: #f3e7d2;      /* text on board */
+
+  /* ── Accent (marigold → terracotta) ───────────────────────────────────── */
+  --accent: #2f7de0;             /* primary blue */
+  --accent-strong: #1f63c4;
+  --accent-deep: #164ea0;
+  --accent-soft: #d8e8fb;        /* tint fill */
+  --accent-softer: #eef5fe;
+  --accent-ring: rgba(47, 125, 224, 0.45);
+
+  /* ── Secondary (sage, for balance) ─────────────────────────────────────── */
+  --sage: #6f9a86;
+  --sage-soft: #e2ece6;
+
+  /* ── Semantic ──────────────────────────────────────────────────────────── */
+  --success: #4f9f72;
+  --danger: #cf5a3a;
+  --info: #4a8fc0;
+
+  /* ── Lines & focus ─────────────────────────────────────────────────────── */
+  --border: rgba(17, 24, 39, 0.12);
+  --border-strong: rgba(17, 24, 39, 0.2);
+  --hairline: rgba(17, 24, 39, 0.07);
+  --focus-ring: var(--accent-ring);
+
+  /* ── Radius ────────────────────────────────────────────────────────────── */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* ── Shadow (warm-tinted) ──────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(17, 24, 39, 0.08);
+  --shadow-sm: 0 2px 6px rgba(17, 24, 39, 0.08);
+  --shadow-md: 0 8px 22px rgba(17, 24, 39, 0.1);
+  --shadow-lg: 0 22px 50px rgba(17, 24, 39, 0.16);
+  --shadow-card: 0 4px 14px rgba(17, 24, 39, 0.1), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  --shadow-piece: 0 3px 7px rgba(40, 26, 12, 0.4);
+  --shadow-piece-drag: 0 16px 30px rgba(40, 26, 12, 0.5);
+
+  /* ── Type ──────────────────────────────────────────────────────────────── */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Georgia', 'Iowan Old Style', 'Palatino Linotype', 'Palatino', serif;
+
+  /* ── Motion ────────────────────────────────────────────────────────────── */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 120ms;
+  --dur: 220ms;
+  --dur-slow: 420ms;
+
+  /* ── Layout ────────────────────────────────────────────────────────────── */
+  --header-h: 64px;
+  --max-w: 1240px;
+  --space: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+/* Slightly larger base type for comfortable reading (audience skews older). */
+html {
+  font-size: 106.25%; /* 17px base */
+}
+/* Accessibility: text-size preference (set on <html data-text-size>) */
+html[data-text-size='large'] {
+  font-size: 118.75%; /* ~19px */
+}
+html[data-text-size='xlarge'] {
+  font-size: 131.25%; /* ~21px */
+}
+/* Accessibility: high-contrast preference */
+html[data-contrast='high'] {
+  --text: #000000;
+  --text-muted: #2b3138;
+  --text-faint: #3a414a;
+  --border: rgba(17, 24, 39, 0.35);
+  --border-strong: rgba(17, 24, 39, 0.55);
+  --hairline: rgba(17, 24, 39, 0.22);
+  --accent-strong: #14479f;
+  --accent-deep: #0f3576;
+  --surface-2: #eef0f3;
+  --surface-3: #e2e5ea;
+}
+/* Accessibility: reduce-motion preference (manual toggle) */
+html[data-motion='reduce'] *,
+html[data-motion='reduce'] *::before,
+html[data-motion='reduce'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+body {
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+  /* Clean white page with a barely-there cool wash toward the bottom. */
+  background-color: var(--bg);
+  background-image: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  background-attachment: fixed;
+}
+
+#root {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  appearance: none;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  padding: 11px 18px;
+  min-height: 46px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  user-select: none;
+  white-space: nowrap;
+}
+.btn:hover {
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn--primary {
+  /* Darker terracotta range so white label text meets contrast (was amber→2.4:1) */
+  background: linear-gradient(180deg, var(--accent-strong) 0%, var(--accent-deep) 100%);
+  color: var(--on-accent);
+  border-color: transparent;
+  box-shadow: 0 6px 16px rgba(31, 99, 196, 0.4), 0 1px 0 rgba(255, 255, 255, 0.22) inset;
+}
+.btn--primary:hover {
+  filter: brightness(1.06);
+  background: linear-gradient(180deg, var(--accent-strong) 0%, var(--accent-deep) 100%);
+  box-shadow: 0 8px 22px rgba(31, 99, 196, 0.48), 0 1px 0 rgba(255, 255, 255, 0.22) inset;
+}
+.btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.btn--ghost:hover {
+  background: rgba(74, 54, 33, 0.07);
+  box-shadow: none;
+}
+.btn--lg {
+  padding: 14px 28px;
+  font-size: 1.05rem;
+}
+.btn--sm {
+  padding: 7px 13px;
+  font-size: 0.86rem;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+}
+
+/* ── Surfaces ────────────────────────────────────────────────────────────── */
+.card {
+  background: linear-gradient(180deg, var(--paper-edge), var(--surface-1));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.input {
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  color: var(--text);
+  font: inherit;
+  padding: 11px 18px;
+  width: 100%;
+  box-shadow: var(--shadow-xs) inset;
+}
+.input::placeholder {
+  color: var(--text-faint);
+}
+.input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* ── Category chip ───────────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+  white-space: nowrap;
+}
+.chip:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.chip[aria-pressed='true'],
+.chip[aria-checked='true'],
+.chip.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+
+/* ── Display section header (serif, with rule) ───────────────────────────── */
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Utilities ───────────────────────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.wrap {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* ── Mobile: tighten global container gutters ─────────────────────────────── */
+@media (max-width: 600px) {
+  .wrap {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+@media (max-width: 400px) {
+  .wrap {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}

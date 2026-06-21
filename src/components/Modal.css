@@ -1,0 +1,190 @@
+/* ── Modal · "Sunlit Puzzle Table" ─────────────────────────────────────────
+   Warm translucent backdrop with blur + paper .card dialog, serif title.
+   ─────────────────────────────────────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  /* Warm dark espresso tint - never pure black - with a soft blur. */
+  background: radial-gradient(
+    120% 120% at 50% 0%,
+    rgba(58, 44, 29, 0.42),
+    rgba(40, 28, 16, 0.58)
+  );
+  -webkit-backdrop-filter: blur(7px) saturate(112%);
+  backdrop-filter: blur(7px) saturate(112%);
+  animation: modal-backdrop-in var(--dur) var(--ease) both;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.modal-card {
+  position: relative;
+  width: 100%;
+  /* maxWidth supplied inline via the maxWidth prop. */
+  margin: auto;
+  padding: 0;
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg), 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+  outline: none;
+  transform-origin: center;
+  animation: modal-card-in var(--dur) var(--ease-out-back) both;
+  max-height: calc(100dvh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0;
+}
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+.modal-body {
+  padding: 20px 24px 24px;
+  color: var(--text);
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+/* ── Close button ────────────────────────────────────────────────────────── */
+.modal-close {
+  flex: none;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: -4px -4px 0 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.modal-close:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+.modal-close:active {
+  transform: scale(0.94);
+}
+
+/* Floating variant when there is no header (untitled modals). */
+.modal-close--floating {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  margin: 0;
+  background: var(--surface-1);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Entrance animations ─────────────────────────────────────────────────── */
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .modal-backdrop {
+    padding: 14px;
+    align-items: flex-end;
+  }
+  .modal-card {
+    max-height: calc(100dvh - 28px);
+  }
+  .modal-header {
+    padding: 18px 18px 12px;
+    gap: 12px;
+  }
+  .modal-title {
+    font-size: 1.3rem;
+  }
+  .modal-body {
+    padding: 16px 18px 20px;
+  }
+  .modal-close {
+    width: 40px;
+    height: 40px;
+  }
+  .modal-close--floating {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+@media (max-width: 400px) {
+  .modal-backdrop {
+    padding: 8px;
+  }
+  .modal-card {
+    max-height: calc(100dvh - 16px);
+    border-radius: var(--r-lg);
+  }
+  .modal-header {
+    padding: 16px 14px 10px;
+  }
+  .modal-title {
+    font-size: 1.2rem;
+  }
+  .modal-body {
+    padding: 14px 14px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop,
+  .modal-card {
+    animation-duration: 1ms;
+    animation-timing-function: linear;
+  }
+  .modal-card {
+    transform: none;
+  }
+}

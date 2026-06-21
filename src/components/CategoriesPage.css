@@ -1,0 +1,52 @@
+.catpage {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 24px 20px 72px;
+}
+
+.catpage-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.catpage-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.catpage-title {
+  font-size: 2rem;
+}
+.catpage-sub {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1.02rem;
+}
+
+@media (max-width: 600px) {
+  .catpage {
+    padding: 18px 14px 56px;
+  }
+  .catpage-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .catpage-title {
+    font-size: 1.6rem;
+  }
+  .catpage-sub {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .catpage {
+    padding: 16px 12px 48px;
+  }
+  .catpage-title {
+    font-size: 1.45rem;
+  }
+}

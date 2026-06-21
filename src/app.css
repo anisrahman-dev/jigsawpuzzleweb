@@ -1,0 +1,129 @@
+/* App shell + gallery/play layout. Component visuals live with their components. */
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Guard against accidental horizontal overflow on phones */
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* ── Gallery home ─────────────────────────────────────────────────────────── */
+.gallery {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 22px 20px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Responsive puzzle grid used for category / search views */
+.puzzle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* ── Mobile: tighten gallery padding + reflow grid ────────────────────────── */
+@media (max-width: 600px) {
+  .gallery {
+    padding: 16px 14px 56px;
+    gap: 22px;
+  }
+  .puzzle-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 400px) {
+  .gallery {
+    padding: 14px 12px 48px;
+    gap: 18px;
+  }
+  .puzzle-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+/* ── Game ─────────────────────────────────────────────────────────────────── */
+.game {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--header-h));
+}
+
+.game-stage {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  /* Warm tabletop around the cork board */
+  background-color: var(--bg-2);
+  background-image:
+    radial-gradient(1000px 540px at 50% -6%, rgba(255, 244, 224, 0.7), transparent 62%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+}
+
+.game-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--text-muted);
+  z-index: 50;
+}
+
+.game-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--text-muted);
+}
+
+.piece {
+  user-select: none;
+  -webkit-user-drag: none;
+  /* Prevent the browser from hijacking touch drags as scroll/zoom gestures. */
+  touch-action: none;
+}
+.piece:active {
+  cursor: grabbing;
+}
+
+/* ── Mobile gameplay layout ────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  /* Never scroll the page sideways while dragging pieces. */
+  .game {
+    overflow-x: hidden;
+    /* Use the dynamic viewport unit so toolbar + board + timer fit the
+       visible area (mobile browser-chrome aware) where supported. */
+    min-height: calc(100dvh - var(--header-h));
+  }
+  /* Keep the play surface from being squeezed below the puzzle-build
+     threshold (the board needs >= 320px in each axis to render). */
+  .game-stage {
+    min-height: 340px;
+    /* The pieces own touch gestures, not the page. */
+    touch-action: none;
+  }
+  .game-empty {
+    padding: 24px 18px;
+    text-align: center;
+  }
+}

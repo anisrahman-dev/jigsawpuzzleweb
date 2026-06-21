@@ -1,0 +1,101 @@
+/* ── PreviewModal · "Sunlit Puzzle Table" ──────────────────────────────────
+   Simple start-a-puzzle step: image + photographer on top, the difficulty
+   picker full-width below, then Play. Fully responsive.
+   ─────────────────────────────────────────────────────────────────────── */
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Image + credit row */
+.preview-top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: center;
+}
+@media (min-width: 520px) {
+  .preview-top {
+    grid-template-columns: 200px 1fr;
+  }
+}
+
+.preview-figure {
+  margin: 0;
+  padding: 7px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(160deg, var(--paper-edge), var(--surface-2));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md), 0 0 0 1px var(--board-rim) inset;
+}
+.preview-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  background: var(--surface-3);
+}
+
+.preview-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.preview-eyebrow {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+.preview-author {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-play {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+@media (max-width: 600px) {
+  .preview {
+    gap: 14px;
+  }
+  .preview-top {
+    gap: 12px;
+  }
+  /* Cap the image so a tall portrait shot doesn't push controls off-screen. */
+  .preview-figure {
+    max-width: 320px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .preview-author {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .preview-author {
+    font-size: 1.15rem;
+  }
+}

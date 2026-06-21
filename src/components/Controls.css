@@ -1,0 +1,163 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Controls - in-play toolbar  ·  "Sunlit Puzzle Table"
+   Bright paper surface, hairline base, capped width, wraps gracefully on mobile.
+   ─────────────────────────────────────────────────────────────────────────── */
+.controls-bar {
+  background: linear-gradient(180deg, var(--paper-edge), var(--surface-1));
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: var(--shadow-sm);
+}
+
+.controls-inner {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Left: back to gallery ─────────────────────────────────────────────────── */
+.controls-left {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Icon + label sit on one flex row inside each button. */
+.controls-back,
+.controls-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Center: difficulty + piece count ──────────────────────────────────────── */
+.controls-center {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-xs) inset;
+  order: 0;
+  white-space: nowrap;
+}
+
+.controls-difficulty {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.controls-dot {
+  color: var(--text-faint);
+}
+
+.controls-count {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ── Right: tool buttons ───────────────────────────────────────────────────── */
+.controls-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+}
+
+/* Active preview toggle - accent treatment. */
+.controls-tool--toggle[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.controls-tool--toggle[aria-pressed='true']:hover {
+  background: var(--accent-softer);
+  border-color: var(--accent);
+}
+
+/* ── Responsive: center the meta on its own row when wrapping ──────────────── */
+@media (max-width: 640px) {
+  .controls-inner {
+    padding: 9px 14px;
+    justify-content: space-between;
+  }
+  .controls-center {
+    order: 3;
+    flex: 1 0 100%;
+    justify-content: center;
+  }
+  .controls-left,
+  .controls-right {
+    flex: 0 1 auto;
+  }
+  .controls-right {
+    flex-wrap: nowrap;
+  }
+}
+
+/* ── Phones: keep the toolbar on two rows, never overflow ──────────────────── */
+@media (max-width: 600px) {
+  .controls-inner {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .controls-left {
+    flex: 0 0 auto;
+  }
+  .controls-right {
+    gap: 6px;
+    min-width: 0;
+  }
+  /* Compact the tool buttons so all three fit a 360px row. */
+  .controls-back,
+  .controls-tool {
+    gap: 6px;
+  }
+}
+
+/* ── Narrow phones: icon-only tools, label kept for screen readers ─────────── */
+@media (max-width: 400px) {
+  .controls-inner {
+    padding: 8px 10px;
+  }
+  .controls-center {
+    padding: 5px 12px;
+    font-size: 0.92rem;
+  }
+  .controls-count {
+    font-size: 0.82rem;
+  }
+  /* Collapse tool buttons to their icon; visually hide the text label but
+     keep it in the DOM for assistive tech. Square tap target stays >= 40px. */
+  .controls-tool {
+    gap: 0;
+    padding: 0;
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+  }
+  .controls-tool .controls-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

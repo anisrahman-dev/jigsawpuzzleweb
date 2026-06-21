@@ -1,0 +1,48 @@
+/* Spinner - refined warm accent arc on a faint warm track
+   ("Sunlit Puzzle Table" design system). */
+.spinner-root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.spinner-ring {
+  display: block;
+  width: var(--spinner-size, 36px);
+  height: var(--spinner-size, 36px);
+  border-radius: var(--r-pill);
+  /* faint warm track */
+  border: var(--spinner-stroke, 4px) solid var(--surface-3);
+  /* marigold -> terracotta arc rides over the track */
+  border-top-color: var(--accent);
+  border-right-color: var(--accent-strong);
+  will-change: transform;
+  animation: spinner-rotate 0.78s var(--ease, linear) infinite;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reduced motion: drop the spin for a gentle accent-ring pulse that
+   still reads as a busy indicator. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner-ring {
+    border-color: var(--accent-soft);
+    border-top-color: var(--accent);
+    animation: spinner-pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes spinner-pulse {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}

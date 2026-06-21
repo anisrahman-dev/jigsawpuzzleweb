@@ -1,0 +1,258 @@
+/* ── Settings modal · "Sunlit Puzzle Table" ────────────────────────────────
+   Pixabay API-key panel. Warm paper surfaces, marigold accents, serif title.
+   ─────────────────────────────────────────────────────────────────────── */
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Heading row (jigsaw badge + title) ───────────────────────────────────── */
+.settings-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.settings-badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-md);
+  color: var(--accent-deep);
+  background: linear-gradient(180deg, var(--accent-softer), var(--accent-soft));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+}
+
+.settings-title {
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0;
+}
+
+.settings-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ── Body copy ────────────────────────────────────────────────────────────── */
+.settings-lede {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.settings-label {
+  margin-top: 2px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.settings-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.settings-hint-icon {
+  flex: none;
+  line-height: 1.5;
+}
+
+/* ── "Key already configured" note ────────────────────────────────────────── */
+.settings-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0;
+  padding: 11px 14px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--sage-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.settings-note-dot {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: var(--r-pill);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #11362a;
+  background: var(--sage);
+}
+
+/* ── Doc link ─────────────────────────────────────────────────────────────── */
+.settings-link {
+  align-self: flex-start;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+/* ── Action row ───────────────────────────────────────────────────────────── */
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+}
+
+@media (max-width: 420px) {
+  .settings-actions {
+    flex-direction: column-reverse;
+  }
+  .settings-actions .btn {
+    width: 100%;
+  }
+}
+
+/* ── Accessibility section ─────────────────────────────────────────────────── */
+.settings-divider {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: 22px 0;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--hairline);
+}
+.settings-row:first-of-type {
+  border-top: none;
+}
+
+.settings-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.settings-row-label {
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--text);
+}
+.settings-row-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Segmented text-size control */
+.settings-seg {
+  display: inline-flex;
+  background: var(--surface-3);
+  border-radius: var(--r-pill);
+  padding: 4px;
+  gap: 4px;
+}
+.settings-seg-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.settings-seg-btn:hover {
+  color: var(--text);
+}
+.settings-seg-btn.is-active {
+  background: linear-gradient(180deg, var(--accent-strong), var(--accent-deep));
+  color: var(--on-accent);
+  box-shadow: var(--shadow-xs);
+}
+
+/* On/off switch */
+.settings-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 56px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-3);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.settings-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-pill);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur) var(--ease);
+}
+.settings-switch.is-on {
+  background: linear-gradient(180deg, var(--accent-strong), var(--accent-deep));
+  border-color: transparent;
+}
+.settings-switch.is-on .settings-switch-knob {
+  transform: translateX(24px);
+}
+
+@media (max-width: 600px) {
+  .settings-head {
+    gap: 12px;
+  }
+  .settings-seg-btn {
+    padding: 9px 14px;
+  }
+  .settings-divider {
+    margin: 18px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  /* Let the control sit full-width below its label once the row wraps. */
+  .settings-row-text {
+    flex: 1 1 100%;
+  }
+  .settings-seg {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .settings-seg-btn {
+    flex: 1 1 0;
+    text-align: center;
+  }
+}

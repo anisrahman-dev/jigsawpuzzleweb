@@ -1,0 +1,463 @@
+/* GalleryHome - page shell: search + section heads + rhythm.
+   Base .gallery / .puzzle-grid live in app.css; .section-title in theme.css.
+   Direction: spacious magazine grid — generous section gaps, a refined title
+   scale, an uppercase accent eyebrow, and an accent underline that reveals on
+   "view all" hover. Clean white ground, blue accent throughout.
+   Scope = page shell only. Event banner / puzzle-of-the-day / category tiles
+   are styled elsewhere and intentionally untouched here. */
+
+/* ── Search row ───────────────────────────────────────────────────────────── *
+   One calm rounded surface: leading icon, free-growing input, refined inner
+   submit. Light hairline border at rest, soft blue ring on focus-within.       */
+.ghome-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 6px 6px 6px 18px;
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.ghome-search:hover {
+  border-color: var(--border-strong);
+}
+.ghome-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-ring), var(--shadow-sm);
+}
+
+.ghome-search-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--text-faint);
+  pointer-events: none;
+  transition: color var(--dur-fast) var(--ease);
+}
+.ghome-search:focus-within .ghome-search-icon {
+  color: var(--accent);
+}
+
+/* Strip the shared .input chrome — the wrapper carries the pill + ring now. */
+.ghome-search-input.input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 52px;
+  padding: 0 6px;
+  font-size: 1.08rem;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.ghome-search-input.input:focus {
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+.ghome-search-input.input::placeholder {
+  color: var(--text-faint);
+}
+.ghome-search-input::-webkit-search-decoration,
+.ghome-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ghome-search-btn {
+  flex-shrink: 0;
+  height: 48px;
+  min-width: 116px;
+  padding-inline: 22px;
+  gap: 7px;
+  border-radius: var(--r-pill);
+}
+.ghome-search-btn .icon,
+.ghome-search-btn svg {
+  transition: transform var(--dur-fast) var(--ease);
+}
+.ghome-search-btn:hover .icon,
+.ghome-search-btn:hover svg {
+  transform: translateX(2px);
+}
+
+/* Search wrapper + understated suggestion chips beneath the field. */
+.ghome-searchwrap {
+  display: flex;
+  flex-direction: column;
+}
+.ghome-suggest {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.ghome-suggest-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  margin-right: 2px;
+}
+
+/* ── Section headers ──────────────────────────────────────────────────────── *
+   Serif title at a refined magazine scale with a small uppercase accent
+   eyebrow, balanced against a quiet "view all" affordance. Heads wrap on
+   narrow widths.                                                               */
+.ghome-head,
+.ghome-cats-head,
+.ghome-result-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.ghome-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+.ghome-head .section-title,
+.ghome-cats .section-title,
+.ghome-cats-head .section-title,
+.ghome-result-head .section-title {
+  margin: 0;
+  font-size: 1.78rem;
+  line-height: 1.08;
+  letter-spacing: -0.018em;
+}
+
+/* Eyebrow: short accent rule + uppercase micro-label anchoring each section. */
+.ghome-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+.ghome-eyebrow::before {
+  content: '';
+  flex: none;
+  width: 22px;
+  height: 2px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+}
+
+/* Optional one-line subtitle under a section title — quiet, muted. */
+.ghome-head-sub {
+  margin: 2px 0 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+/* "View all" — quiet text affordance: an accent underline grows from the left
+   on hover/focus while the arrow nudges. The rule rides a positioned ::after,
+   inset on the right so it tracks the label and not the trailing icon. */
+.ghome-viewall {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+  padding: 4px 2px;
+  border: none;
+  background: none;
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+.ghome-viewall::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  right: 28px;
+  bottom: 0;
+  height: 2px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-slow) var(--ease);
+}
+.ghome-viewall:hover,
+.ghome-viewall:focus-visible {
+  color: var(--accent-strong);
+}
+.ghome-viewall:hover::after,
+.ghome-viewall:focus-visible::after {
+  transform: scaleX(1);
+}
+.ghome-viewall:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.ghome-viewall .icon,
+.ghome-viewall svg {
+  transition: transform var(--dur-fast) var(--ease);
+}
+.ghome-viewall:hover .icon,
+.ghome-viewall:hover svg {
+  transform: translateX(2px);
+}
+
+/* ── Section rhythm + subtle dividers ─────────────────────────────────────── *
+   No boxes: spacious magazine gaps with a faint hairline between consecutive
+   gallery sections for quiet separation.                                       */
+.ghome-content {
+  margin-top: 4px;
+}
+.ghome-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 54px;
+}
+.ghome-sections .ghome-section + .ghome-section {
+  padding-top: 54px;
+  border-top: 1px solid var(--hairline);
+}
+.ghome-section .section-title,
+.ghome-main > section .section-title {
+  margin-bottom: 0;
+}
+
+/* ── States & inline note ─────────────────────────────────────────────────── */
+.ghome-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 88px 20px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.ghome-state .section-title {
+  color: var(--text);
+}
+.ghome-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--accent-softer);
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.ghome-note p {
+  margin: 0;
+}
+
+/* ── Mobile (<=600px) ─────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .ghome-search {
+    padding: 6px 6px 6px 16px;
+  }
+  .ghome-search-input.input {
+    height: 46px;
+    font-size: 1rem;
+  }
+  .ghome-search-btn {
+    min-width: 0;
+    padding-inline: 16px;
+  }
+  /* Collapse to icon-only submit on narrow widths. */
+  .ghome-search-btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .ghome-head,
+  .ghome-cats-head,
+  .ghome-result-head {
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+  .ghome-head .section-title,
+  .ghome-cats .section-title,
+  .ghome-cats-head .section-title,
+  .ghome-result-head .section-title {
+    font-size: 1.5rem;
+  }
+  .ghome-viewall {
+    margin-left: auto;
+    padding-inline: 2px;
+  }
+  .ghome-sections {
+    gap: 40px;
+  }
+  .ghome-sections .ghome-section + .ghome-section {
+    padding-top: 40px;
+  }
+  .ghome-suggest {
+    margin-top: 12px;
+  }
+}
+
+/* ── Mobile (<=400px) ─────────────────────────────────────────────────────── */
+@media (max-width: 400px) {
+  .ghome-search {
+    padding: 5px 5px 5px 14px;
+    gap: 6px;
+  }
+  .ghome-search-input.input {
+    height: 44px;
+    font-size: 0.96rem;
+    padding: 0 4px;
+  }
+  .ghome-search-btn {
+    height: 44px;
+    width: 44px;
+    min-width: 44px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+  .ghome-suggest {
+    gap: 6px;
+  }
+  .ghome-head .section-title,
+  .ghome-cats .section-title,
+  .ghome-cats-head .section-title,
+  .ghome-result-head .section-title {
+    font-size: 1.35rem;
+  }
+  .ghome-sections {
+    gap: 34px;
+  }
+  .ghome-sections .ghome-section + .ghome-section {
+    padding-top: 34px;
+  }
+  .ghome-note {
+    padding: 12px 14px;
+    font-size: 0.94rem;
+  }
+  .ghome-about {
+    margin-top: 36px;
+    padding-top: 36px;
+  }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ghome-search,
+  .ghome-search-icon,
+  .ghome-search-btn .icon,
+  .ghome-search-btn svg,
+  .ghome-viewall,
+  .ghome-viewall::after,
+  .ghome-viewall .icon,
+  .ghome-viewall svg {
+    transition: none;
+  }
+  .ghome-search-btn:hover .icon,
+  .ghome-search-btn:hover svg,
+  .ghome-viewall:hover .icon,
+  .ghome-viewall:hover svg {
+    transform: none;
+  }
+  /* Keep the underline as a static state cue without animating it. */
+  .ghome-viewall:hover::after,
+  .ghome-viewall:focus-visible::after {
+    transform: scaleX(1);
+  }
+}
+
+/* ── About + FAQ (SEO content; matches the FAQPage JSON-LD) ───────────────── */
+.ghome-about {
+  margin-top: 46px;
+  padding-top: 46px;
+  border-top: 1px solid var(--hairline);
+  max-width: 80ch;
+}
+.ghome-about-lead {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1.04rem;
+  line-height: 1.6;
+}
+.ghome-inlink {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent-strong);
+  cursor: pointer;
+}
+.ghome-inlink:hover {
+  text-decoration: underline;
+}
+.ghome-toplinks {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+.ghome-toplinks a {
+  display: inline-block;
+  padding: 6px 13px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.ghome-toplinks a:hover {
+  background: var(--accent-softer);
+  border-color: var(--accent-soft);
+  color: var(--accent-deep);
+}
+.ghome-faq-title {
+  margin: 34px 0 0;
+}
+.ghome-faq {
+  margin: 16px 0 0;
+}
+.ghome-faq-item {
+  padding: 16px 0;
+  border-top: 1px solid var(--hairline);
+}
+.ghome-faq-item:first-child {
+  border-top: none;
+}
+.ghome-faq-item dt {
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.ghome-faq-item dd {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}

@@ -1,0 +1,62 @@
+/* BrandMark - Jigsaw Studio identity. Styled from theme.css tokens only. */
+
+.brand {
+  --brand-size: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--brand-size) * 0.32);
+  line-height: 1;
+  user-select: none;
+}
+
+.brand-glyph {
+  display: block;
+  flex: none;
+  filter: drop-shadow(0 2px 4px rgba(74, 54, 33, 0.22));
+}
+
+.brand-tile {
+  fill: var(--surface-1);
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+
+.brand-piece {
+  stroke: var(--accent-deep);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.brand-shine {
+  fill: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Wordmark ──────────────────────────────────────────────────────────── */
+.brand-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  /* Scale type to glyph height; clamp keeps it sane at extremes. */
+  font-size: clamp(15px, calc(var(--brand-size) * 0.62), 30px);
+  white-space: nowrap;
+}
+
+.brand-word--jigsaw {
+  color: var(--text);
+}
+
+.brand-word--studio {
+  color: var(--accent-strong);
+  font-style: italic;
+  font-weight: 700;
+}
+
+/* Hide the wordmark on very narrow screens when used in tight bars. */
+@media (max-width: 360px) {
+  .brand-text {
+    font-size: clamp(14px, calc(var(--brand-size) * 0.58), 22px);
+  }
+}

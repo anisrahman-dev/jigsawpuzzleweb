@@ -1,0 +1,140 @@
+/* Footer - "Sunlit Puzzle Table". Calm, warm, faint. */
+
+.footer {
+  margin-top: auto;
+  border-top: 1px solid var(--hairline);
+  background: linear-gradient(180deg, transparent, rgba(74, 54, 33, 0.025));
+}
+
+.footer-inner {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 36px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+/* Brand + tagline cluster */
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-tagline {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  max-width: 38ch;
+}
+
+/* Link column */
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer-link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.footer-link svg {
+  color: var(--text-faint);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.footer-link:hover svg {
+  color: var(--accent-strong);
+}
+
+.footer-link:hover {
+  color: var(--accent-strong);
+  background: rgba(74, 54, 33, 0.05);
+  text-decoration: none;
+}
+
+/* Faint attribution line */
+.footer-attribution {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.footer-attribution a {
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+.footer-attribution a:hover {
+  color: var(--accent-strong);
+}
+
+/* Narrow phones: tighten gutters, keep links tappable */
+@media (max-width: 600px) {
+  .footer-inner {
+    padding: 28px 14px 32px;
+    gap: 16px;
+  }
+  .footer-link {
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+}
+
+/* Wider screens: brand left, links + attribution to the right */
+@media (min-width: 720px) {
+  .footer-inner {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    gap: 24px;
+    padding: 40px 20px 44px;
+  }
+
+  .footer-brand {
+    align-items: center;
+    flex-direction: row;
+    gap: 14px;
+  }
+
+  .footer-tagline {
+    max-width: 30ch;
+  }
+
+  .footer-links {
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .footer-attribution {
+    flex-basis: 100%;
+    text-align: center;
+    padding-top: 6px;
+    border-top: 1px solid var(--hairline);
+  }
+}

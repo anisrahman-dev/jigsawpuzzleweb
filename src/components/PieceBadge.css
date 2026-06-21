@@ -1,0 +1,39 @@
+/* PieceBadge - decorative jigsaw-piece corner badge with overlaid piece count. */
+
+.pbadge-root {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+  /* Lift it off the photo so the silhouette + number stay legible. */
+  filter: drop-shadow(0 3px 6px rgba(40, 26, 12, 0.4))
+    drop-shadow(0 1px 1px rgba(40, 26, 12, 0.3));
+  pointer-events: none;
+  user-select: none;
+}
+
+.pbadge-svg {
+  display: block;
+  grid-area: 1 / 1;
+}
+
+/* The piece silhouette: warm marigold→terracotta fill with a crisp light rim. */
+.pbadge-piece {
+  fill: var(--accent-strong);
+  stroke: var(--accent-deep);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+/* Count sits dead-centre over the body of the piece. */
+.pbadge-count {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  color: var(--on-accent);
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 2px rgba(40, 26, 12, 0.5);
+  font-variant-numeric: tabular-nums;
+}

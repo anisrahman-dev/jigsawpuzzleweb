@@ -1,0 +1,146 @@
+.puzpg {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 20px 20px 72px;
+}
+
+/* Breadcrumb (mirrors the category page) */
+.puzpg-crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+.puzpg-crumb {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--accent-strong);
+  cursor: pointer;
+  padding: 2px;
+}
+.puzpg-crumb:hover {
+  text-decoration: underline;
+}
+.puzpg-crumb.is-current {
+  color: var(--text-muted);
+  cursor: default;
+  max-width: 40ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.puzpg-sep {
+  color: var(--text-faint);
+}
+
+/* Two-column: image + start panel */
+.puzpg-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.puzpg-figure {
+  margin: 0;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface-2);
+  box-shadow: var(--shadow-md);
+}
+.puzpg-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+
+.puzpg-panel {
+  position: sticky;
+  top: 20px;
+}
+.puzpg-title {
+  font-size: 2rem;
+  line-height: 1.12;
+  margin: 0 0 6px;
+}
+.puzpg-credit {
+  margin: 0 0 18px;
+  color: var(--text-muted);
+  font-size: 0.98rem;
+}
+.puzpg-credit a {
+  color: var(--accent-strong);
+}
+.puzpg-lead {
+  margin: 0 0 20px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.puzpg-play {
+  margin-top: 22px;
+  width: 100%;
+}
+
+.puzpg-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 0;
+  color: var(--text-muted);
+}
+
+@media (max-width: 760px) {
+  .puzpg-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .puzpg-panel {
+    position: static;
+  }
+  .puzpg-title {
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .puzpg {
+    padding: 16px 14px 56px;
+  }
+  .puzpg-grid {
+    gap: 18px;
+  }
+  .puzpg-title {
+    font-size: 1.5rem;
+  }
+  .puzpg-crumbs {
+    font-size: 0.88rem;
+    margin-bottom: 14px;
+  }
+  .puzpg-crumb.is-current {
+    max-width: 24ch;
+  }
+  .puzpg-lead {
+    font-size: 0.98rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .puzpg {
+    padding: 14px 12px 48px;
+  }
+  .puzpg-title {
+    font-size: 1.35rem;
+  }
+  .puzpg-crumb.is-current {
+    max-width: 16ch;
+  }
+}

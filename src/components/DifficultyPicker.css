@@ -1,0 +1,156 @@
+/* DifficultyPicker - chip-like cards on warm paper. Active = accent-soft fill,
+   accent border, accent-deep ink, with a little check medallion. */
+
+.diffpick {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.diffpick-label {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.diffpick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 460px) {
+  .diffpick-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Each option is a chip-styled card - centred, with room up top for the tick. */
+.diffpick-option {
+  position: relative;
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  padding: 26px 10px 14px;
+  min-height: 86px;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+
+.diffpick-option:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.diffpick-option:active {
+  transform: translateY(1px);
+}
+
+.diffpick-option:focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.diffpick-name {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.diffpick-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.1;
+}
+
+/* Check medallion - hidden until selected */
+.diffpick-tick {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-xs);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur) var(--ease-out-back);
+}
+
+/* ── Active state ────────────────────────────────────────────────────────── */
+.diffpick-option[aria-checked='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+  box-shadow: 0 0 0 1px var(--accent) inset, var(--shadow-sm);
+}
+
+.diffpick-option[aria-checked='true'] .diffpick-name {
+  color: var(--accent-deep);
+}
+
+.diffpick-option[aria-checked='true'] .diffpick-count {
+  color: var(--accent-strong);
+}
+
+.diffpick-option[aria-checked='true'] .diffpick-tick {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (max-width: 600px) {
+  .diffpick-grid {
+    gap: 8px;
+  }
+  .diffpick-option {
+    padding: 22px 8px 12px;
+    min-height: 78px;
+  }
+  .diffpick-name {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .diffpick-name {
+    font-size: 1rem;
+  }
+  .diffpick-count {
+    font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diffpick-option,
+  .diffpick-tick {
+    transition: none;
+  }
+  .diffpick-option:active {
+    transform: none;
+  }
+}
