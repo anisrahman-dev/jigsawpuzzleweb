@@ -3,6 +3,7 @@ import { useUiStore } from '@/store/uiStore'
 import { usePuzzleStore } from '@/store/puzzleStore'
 import { loadImage } from '@/api/pixabay'
 import { useElementSize } from '@/hooks/useElementSize'
+import { usePanZoom } from '@/hooks/usePanZoom'
 import { PuzzleBoard } from './PuzzleBoard'
 import { Controls } from './Controls'
 import { Timer } from './Timer'
@@ -20,6 +21,7 @@ export function Game() {
   const goHome = useUiStore((s) => s.goHome)
 
   const [wrapRef, size] = useElementSize<HTMLDivElement>()
+  usePanZoom(wrapRef)
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [state, setState] = useState<LoadState>('idle')
   const [reloadKey, setReloadKey] = useState(0)
