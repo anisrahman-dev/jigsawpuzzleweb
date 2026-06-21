@@ -52,9 +52,12 @@ export function App() {
 
   // Always open a new page at the top: reset scroll on any navigation - a new
   // view, category, event, puzzle, or page of results - so nothing ever opens
-  // scrolled partway down.
+  // scrolled partway down. Because html/body have overflow-x:hidden + height
+  // 100%, the BODY is the scroll container (not the window), so reset all three.
   useEffect(() => {
     window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
   }, [view, selectedCategory, selectedEvent, puzzleRoute, categoryPage])
 
   return (
