@@ -189,6 +189,58 @@ function categoryJsonLd(label, slug, images) {
   ]
 }
 
+// ── Categories index (/categories) ──────────────────────────────────────────
+function categoriesBody(index) {
+  const tiles = index
+    .map(
+      (c) =>
+        `<li><a href="/${escAttr(c.slug)}">` +
+        (c.cover
+          ? `<img src="${escAttr(c.cover)}" alt="${escAttr(c.label)} jigsaw puzzles" loading="lazy" />`
+          : '') +
+        `<span>${escHtml(c.label)} Jigsaw Puzzles</span></a></li>`,
+    )
+    .join('')
+  // Flat keyword-rich link index for crawl depth.
+  const allLinks = index
+    .map((c) => `<a href="/${escAttr(c.slug)}">${escHtml(c.label)}</a>`)
+    .join(' · ')
+  return (
+    `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>Categories</span></nav>` +
+    `<h1>Free Online Jigsaw Puzzle Categories</h1>` +
+    `<p>Browse all ${index.length} free online jigsaw puzzle categories on ${escHtml(SITE)} - from nature, wildlife and flowers to cities, food and travel. Pick a category, choose a picture, and play free from 12 to 300 pieces. No login, no downloads.</p>` +
+    `<ul class="grid">${tiles}</ul>` +
+    `<section aria-label="All categories" class="all-index">${allLinks}</section>` +
+    `</main>`
+  )
+}
+
+function categoriesJsonLd(index) {
+  return [
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: 'Categories', path: '/categories' },
+    ]),
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Free Online Jigsaw Puzzle Categories',
+      url: abs('/categories'),
+      isPartOf: { '@type': 'WebSite', name: SITE, url: abs('/') },
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: index.length,
+        itemListElement: index.map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: `${c.label} Jigsaw Puzzles`,
+          url: abs(`/${c.slug}`),
+        })),
+      },
+    },
+  ]
+}
+
 function puzzleBody(label, catKey, im) {
   const name = subjectName(im.tags)
   const tags = extraTags(im.tags, name, 2)
@@ -362,6 +414,7 @@ async function main() {
 
   let catCount = 0
   let puzCount = 0
+  const categoryIndex = [] // {label, slug, cover, count} for the /categories page
 
   for (const file of files) {
     const key = file.replace(/\.json$/, '')
@@ -370,6 +423,7 @@ async function main() {
     const data = JSON.parse(await fs.readFile(path.join(CATALOG, file), 'utf8'))
     const images = data.images || []
     const slug = categorySlug(label)
+    categoryIndex.push({ label, slug, cover: images[0]?.thumb || '', count: images.length })
 
     // Category landing page (page 1, canonical).
     const totalPages = Math.max(1, Math.ceil(images.length / PAGE_SIZE))
@@ -408,6 +462,19 @@ async function main() {
     process.stdout.write(`\r  ${catCount}/${files.length} categories, ${puzCount} puzzle pages…   `)
   }
   process.stdout.write('\n')
+
+  // Prerender the /categories index (was an empty SPA shell to crawlers).
+  categoryIndex.sort((a, b) => a.label.localeCompare(b.label))
+  const categoriesHtml = buildHtml(template, {
+    title: `Free Online Jigsaw Puzzle Categories - ${categoryIndex.length} Themes | ${SITE}`,
+    description: `Browse all ${categoryIndex.length} free online jigsaw puzzle categories on ${SITE} - nature, wildlife, flowers, cities, food, travel and more. Pick a category and play from 12 to 300 pieces. No login, no downloads.`,
+    canonicalPath: '/categories',
+    prev: null,
+    next: null,
+    jsonld: categoriesJsonLd(categoryIndex),
+    body: categoriesBody(categoryIndex),
+  })
+  await writePretty('/categories', categoriesHtml)
 
   // Prerender the home page LAST (overwrites the bare shell template).
   await buildHome(template, labels)

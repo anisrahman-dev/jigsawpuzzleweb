@@ -20,7 +20,12 @@ export function CategoryTiles({ items, activeKey = null, onSelect }: CategoryTil
           aria-pressed={activeKey === cat.key}
           onClick={() => onSelect(cat)}
         >
-          <img className="cattile-img" src={categoryCover(cat.key)} alt="" loading="lazy" />
+          <img
+            className="cattile-img"
+            src={categoryCover(cat.key)}
+            alt={`${cat.label} jigsaw puzzles`}
+            loading="lazy"
+          />
           <span className="cattile-overlay" aria-hidden="true" />
           <span className="cattile-label">{cat.label}</span>
         </button>
