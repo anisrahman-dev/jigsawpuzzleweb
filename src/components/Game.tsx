@@ -7,6 +7,7 @@ import { PuzzleBoard } from './PuzzleBoard'
 import { Controls } from './Controls'
 import { Timer } from './Timer'
 import { CompletionModal } from './CompletionModal'
+import { HintToast } from './HintToast'
 import { Spinner } from './Spinner'
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
@@ -20,6 +21,7 @@ export function Game() {
   const [wrapRef, size] = useElementSize<HTMLDivElement>()
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [state, setState] = useState<LoadState>('idle')
+  const [reloadKey, setReloadKey] = useState(0)
   const setupKey = useRef<string>('')
 
   // Subscribe to the store so the board appears once the puzzle is built for
@@ -45,7 +47,7 @@ export function Game() {
     return () => {
       cancelled = true
     }
-  }, [selectedImage])
+  }, [selectedImage, reloadKey])
 
   // Build the puzzle once the image is loaded and we know the surface size.
   useEffect(() => {
@@ -85,12 +87,29 @@ export function Game() {
         {state === 'error' && (
           <div className="game-overlay">
             <p>Couldn’t load that image.</p>
-            <button className="btn btn--primary" onClick={goHome}>
-              Pick another
-            </button>
+            <div className="game-overlay-actions">
+              <button className="btn btn--primary" onClick={() => setReloadKey((k) => k + 1)}>
+                Try again
+              </button>
+              <button className="btn" onClick={goHome}>
+                Pick another
+              </button>
+            </div>
           </div>
         )}
-        {state === 'ready' && img && puzzleReady && <PuzzleBoard img={img} />}
+        {/* Image is decoded but the board geometry is still being built. */}
+        {state === 'ready' && img && !puzzleReady && (
+          <div className="game-overlay">
+            <Spinner />
+            <p>Cutting your puzzle…</p>
+          </div>
+        )}
+        {state === 'ready' && img && puzzleReady && (
+          <>
+            <PuzzleBoard img={img} />
+            <HintToast />
+          </>
+        )}
       </div>
       <Timer />
       <CompletionModal />

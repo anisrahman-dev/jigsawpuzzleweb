@@ -76,6 +76,17 @@
   flex-wrap: wrap;
 }
 
+/* Shuffle awaiting confirmation - warn treatment so the mis-tap guard is clear. */
+.controls-tool--warn {
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface-1));
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.controls-tool--warn:hover {
+  background: color-mix(in srgb, var(--danger) 18%, var(--surface-1));
+  border-color: var(--danger);
+}
+
 /* Active preview toggle - accent treatment. */
 .controls-tool--toggle[aria-pressed='true'] {
   background: var(--accent-soft);

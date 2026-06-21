@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePuzzleStore } from '@/store/puzzleStore'
 import { Piece } from './Piece'
 
@@ -21,21 +21,48 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
   const scaleX = img.naturalWidth / boardW
   const scaleY = img.naturalHeight / boardH
 
-  const drag = useRef<{ groupId: number; startX: number; startY: number; baseDx: number; baseDy: number } | null>(null)
+  // Single polite live region for keyboard play + placement feedback.
+  const [srMsg, setSrMsg] = useState('')
+  const announce = useCallback((m: string) => setSrMsg(m), [])
+
+  const drag = useRef<
+    | {
+        groupId: number
+        startX: number
+        startY: number
+        baseDx: number
+        baseDy: number
+        pointerId: number
+        el: Element
+      }
+    | null
+  >(null)
 
   const onMove = useCallback((e: PointerEvent) => {
     const d = drag.current
     if (!d) return
-    const { moveGroup } = usePuzzleStore.getState()
-    moveGroup(d.groupId, d.baseDx + (e.clientX - d.startX), d.baseDy + (e.clientY - d.startY))
+    usePuzzleStore
+      .getState()
+      .moveGroup(d.groupId, d.baseDx + (e.clientX - d.startX), d.baseDy + (e.clientY - d.startY))
   }, [])
 
-  const onUp = useCallback(() => {
+  // One path ends every drag - pointerup, pointercancel, or lostpointercapture
+  // (system interruption, off-viewport release). Always drops, clears state,
+  // releases capture and detaches listeners, so a stale grab can never persist.
+  const endDrag = useCallback(() => {
     const d = drag.current
-    if (d) usePuzzleStore.getState().dropGroup(d.groupId)
-    drag.current = null
     window.removeEventListener('pointermove', onMove)
-    window.removeEventListener('pointerup', onUp)
+    window.removeEventListener('pointerup', endDrag)
+    window.removeEventListener('pointercancel', endDrag)
+    drag.current = null
+    usePuzzleStore.getState().setDragging(null)
+    if (!d) return
+    try {
+      d.el.releasePointerCapture(d.pointerId)
+    } catch {
+      /* capture may already be gone */
+    }
+    usePuzzleStore.getState().dropGroup(d.groupId)
   }, [onMove])
 
   const onGrab = useCallback(
@@ -43,18 +70,45 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
       const store = usePuzzleStore.getState()
       const g = store.groups[groupId]
       if (!g || g.locked) return
+      // Abandon any previous (stale) drag before starting a new one.
+      if (drag.current) endDrag()
       store.bringToFront(groupId)
-      drag.current = { groupId, startX: e.clientX, startY: e.clientY, baseDx: g.dx, baseDy: g.dy }
+      store.setDragging(groupId)
+      const el = e.currentTarget as Element
+      try {
+        el.setPointerCapture(e.pointerId)
+      } catch {
+        /* capture unsupported - window listeners still track the move */
+      }
+      drag.current = {
+        groupId,
+        startX: e.clientX,
+        startY: e.clientY,
+        baseDx: g.dx,
+        baseDy: g.dy,
+        pointerId: e.pointerId,
+        el,
+      }
       window.addEventListener('pointermove', onMove)
-      window.addEventListener('pointerup', onUp)
+      window.addEventListener('pointerup', endDrag)
+      window.addEventListener('pointercancel', endDrag)
     },
-    [onMove, onUp],
+    [onMove, endDrag],
   )
+
+  // Safety net: tear down a drag if the board unmounts mid-gesture.
+  useEffect(() => endDrag, [endDrag])
 
   return (
     <div
       className="surface"
-      style={{ position: 'relative', width: surfaceW, height: surfaceH, margin: '0 auto' }}
+      style={{
+        position: 'relative',
+        width: surfaceW,
+        height: surfaceH,
+        margin: '0 auto',
+        touchAction: 'none',
+      }}
     >
       {/* Board frame / felt - warm cork mat in a walnut rim */}
       <div
@@ -80,7 +134,7 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'fill',
+              objectFit: 'cover',
               opacity: 0.22,
               borderRadius: 6,
               pointerEvents: 'none',
@@ -91,8 +145,21 @@ export function PuzzleBoard({ img }: PuzzleBoardProps) {
 
       {/* Pieces */}
       {pieces.map((p) => (
-        <Piece key={p.id} id={p.id} img={img} scaleX={scaleX} scaleY={scaleY} onGrab={onGrab} />
+        <Piece
+          key={p.id}
+          id={p.id}
+          img={img}
+          scaleX={scaleX}
+          scaleY={scaleY}
+          onGrab={onGrab}
+          announce={announce}
+        />
       ))}
+
+      {/* Polite, on-demand status for assistive tech (keyboard play + snaps). */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {srMsg}
+      </div>
     </div>
   )
 }

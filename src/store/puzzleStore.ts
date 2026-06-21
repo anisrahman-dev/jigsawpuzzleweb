@@ -37,14 +37,19 @@ interface PuzzleState {
   startedAt: number | null
   solvedAt: number | null
   showGhost: boolean
+  /** Group currently being dragged (pointer or keyboard), else null. Lets
+   *  pieces opt into GPU promotion + the heavier drag shadow only while moving. */
+  draggingGroupId: number | null
+  /** Most recent successful snap (home-lock or merge); drives the snap pulse. */
+  lastSnap: { groupId: number; at: number } | null
 
   setup: (args: SetupArgs) => void
   bringToFront: (groupId: number) => number
+  setDragging: (groupId: number | null) => void
   moveGroup: (groupId: number, dx: number, dy: number) => void
   dropGroup: (groupId: number) => void
   scatter: () => void
   toggleGhost: () => void
-  autoSolve: () => void
   reset: () => void
 }
 
@@ -70,6 +75,8 @@ const initial = {
   startedAt: null as number | null,
   solvedAt: null as number | null,
   showGhost: false,
+  draggingGroupId: null as number | null,
+  lastSnap: null as { groupId: number; at: number } | null,
 }
 
 function adjacent(a: Piece, b: Piece): boolean {
@@ -130,7 +137,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
   },
 
   scatter: () => {
-    const { pieces, groups, cols, cellW, cellH, boardX, boardY, boardW, boardH, surfaceW, surfaceH, shapes } = get()
+    const { pieces, groups, cellW, cellH, boardX, boardY, boardW, boardH, surfaceW, surfaceH, shapes } = get()
     if (!shapes) return
     const next: Record<number, Group> = {}
     const over = shapes.over
@@ -174,8 +181,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
     }
     // rebuild groups to singletons
     const resetPieces = pieces.map((p) => ({ ...p, groupId: p.id }))
-    set({ pieces: resetPieces, groups: next, zCounter: z, moves: 0, status: 'playing', solvedAt: null })
-    void cols
+    set({ pieces: resetPieces, groups: next, zCounter: z, moves: 0, status: 'playing', solvedAt: null, lastSnap: null })
   },
 
   bringToFront: (groupId) => {
@@ -187,6 +193,8 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
     return z
   },
 
+  setDragging: (groupId) => set({ draggingGroupId: groupId }),
+
   moveGroup: (groupId, dx, dy) => {
     set((s) => {
       const g = s.groups[groupId]
@@ -197,11 +205,13 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
 
   dropGroup: (groupId) => {
     const state = get()
-    // Forgiving snap radius - easier for less precise mouse/touch control.
-    const tol = 0.36 * Math.min(state.cellW, state.cellH)
+    // Size-aware snap radius: clamped to [12px, 30px] so easy boards aren't
+    // over-magnetic and hard/expert cells stay reachable for imprecise touch.
+    const tol = Math.max(12, Math.min(0.36 * Math.min(state.cellW, state.cellH), 30))
     const groups = { ...state.groups }
     let pieces = state.pieces
     const pieceById = (id: number) => pieces.find((p) => p.id === id)!
+    let didSnap = false
 
     let g = groups[groupId]
     if (!g || g.locked) return
@@ -210,6 +220,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
     if (Math.abs(g.dx) <= tol && Math.abs(g.dy) <= tol) {
       g = { ...g, dx: 0, dy: 0, locked: true }
       groups[groupId] = g
+      didSnap = true
     }
 
     // Merge with any neighbouring group whose offset matches.
@@ -237,6 +248,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
         pieces = pieces.map((p) => (combinedIds.includes(p.id) ? { ...p, groupId: targetId } : p))
         g = newGroup
         merged = true
+        didSnap = true
         break
       }
     }
@@ -251,22 +263,12 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
       zCounter: Math.max(state.zCounter, ...Object.values(groups).map((x) => x.z)),
       status: solved ? 'solved' : 'playing',
       solvedAt: solved ? Date.now() : state.solvedAt,
+      // Pulse the (possibly merged) group when a placement actually connected.
+      lastSnap: didSnap ? { groupId: g.id, at: Date.now() } : state.lastSnap,
     })
   },
 
   toggleGhost: () => set((s) => ({ showGhost: !s.showGhost })),
-
-  autoSolve: () => {
-    set((s) => {
-      if (!s.pieces.length) return {}
-      const allIds = s.pieces.map((p) => p.id)
-      const groups: Record<number, Group> = {
-        0: { id: 0, pieceIds: allIds, dx: 0, dy: 0, locked: true, z: 1 },
-      }
-      const pieces = s.pieces.map((p) => ({ ...p, groupId: 0 }))
-      return { groups, pieces, status: 'solved', solvedAt: Date.now() }
-    })
-  },
 
   reset: () => set({ ...initial }),
 }))

@@ -86,6 +86,14 @@ body {
   z-index: 50;
 }
 
+.game-overlay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
 .game-empty {
   flex: 1;
   display: flex;
@@ -104,6 +112,32 @@ body {
 }
 .piece:active {
   cursor: grabbing;
+}
+/* Keyboard focus + lifted/dragging emphasis (focus ring sits above neighbours). */
+.piece:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+.piece--active {
+  cursor: grabbing;
+}
+
+/* Snap feedback: a quick brightness + shadow pulse when a placement connects.
+   Animating filter (not transform) leaves the piece's translate3d intact, and
+   the global reduce-motion rule neutralizes it for motion-sensitive players. */
+.piece--snapped {
+  animation: piece-snap 420ms var(--ease) 1;
+}
+@keyframes piece-snap {
+  0% {
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+  }
+  35% {
+    filter: brightness(1.18) drop-shadow(0 8px 16px rgba(31, 99, 196, 0.55));
+  }
+  100% {
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+  }
 }
 
 /* ── Mobile gameplay layout ────────────────────────────────────────────────── */

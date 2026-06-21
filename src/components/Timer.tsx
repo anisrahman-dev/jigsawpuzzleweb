@@ -21,7 +21,10 @@ export function Timer() {
   const percent = Math.round(pct * 100)
 
   return (
-    <div className="timer-bar" role="status" aria-live="polite">
+    // No aria-live here: the clock changes every second and would spam assistive
+    // tech (and drown out piece-placement announcements). The progressbar below
+    // still exposes progress on demand.
+    <div className="timer-bar">
       <div className="timer-inner">
         {!hideTimer && (
           <>
@@ -50,9 +53,11 @@ export function Timer() {
           <div
             className="timer-track"
             role="progressbar"
+            aria-label="Puzzle progress"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={percent}
+            aria-valuetext={`${percent}% complete`}
           >
             <div className="timer-fill" style={{ width: `${percent}%` }} />
           </div>

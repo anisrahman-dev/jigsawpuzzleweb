@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { Icon } from '@/components/Icon'
 import { usePuzzleStore } from '@/store/puzzleStore'
+import { usePrefsStore } from '@/store/prefsStore'
 import { useUiStore } from '@/store/uiStore'
 import './Controls.css'
 
@@ -12,12 +14,26 @@ export function Controls() {
   const cols = usePuzzleStore((s) => s.cols)
   const rows = usePuzzleStore((s) => s.rows)
   const showGhost = usePuzzleStore((s) => s.showGhost)
+  const hideTimer = usePrefsStore((s) => s.hideTimer)
+
+  // Two-step shuffle: a mis-tap shouldn't destroy a half-solved board.
+  const [confirmingShuffle, setConfirmingShuffle] = useState(false)
 
   const pieceCount = cols * rows
 
   const goHome = (): void => useUiStore.getState().goHome()
-  const shuffle = (): void => usePuzzleStore.getState().scatter()
   const togglePreview = (): void => usePuzzleStore.getState().toggleGhost()
+  const toggleHideTimer = (): void => usePrefsStore.getState().toggleHideTimer()
+
+  const onShuffle = (): void => {
+    if (!confirmingShuffle) {
+      setConfirmingShuffle(true)
+      window.setTimeout(() => setConfirmingShuffle(false), 3500)
+      return
+    }
+    setConfirmingShuffle(false)
+    usePuzzleStore.getState().scatter()
+  }
 
   return (
     <div className="controls-bar">
@@ -40,9 +56,14 @@ export function Controls() {
         </div>
 
         <div className="controls-right">
-          <button type="button" className="btn btn--sm controls-tool" onClick={shuffle}>
+          <button
+            type="button"
+            className={'btn btn--sm controls-tool' + (confirmingShuffle ? ' controls-tool--warn' : '')}
+            onClick={onShuffle}
+            aria-label={confirmingShuffle ? 'Confirm shuffle - this clears your progress' : 'Shuffle pieces'}
+          >
             <Icon name="shuffle" size={18} />
-            <span className="controls-label">Shuffle</span>
+            <span className="controls-label">{confirmingShuffle ? 'Confirm?' : 'Shuffle'}</span>
           </button>
           <button
             type="button"
@@ -52,6 +73,16 @@ export function Controls() {
           >
             <Icon name={showGhost ? 'eye-off' : 'eye'} size={18} />
             <span className="controls-label">Preview</span>
+          </button>
+          <button
+            type="button"
+            className="btn btn--sm controls-tool controls-tool--toggle"
+            aria-pressed={hideTimer}
+            onClick={toggleHideTimer}
+            title={hideTimer ? 'Timer hidden (relaxed mode)' : 'Hide the timer'}
+          >
+            <Icon name="clock" size={18} />
+            <span className="controls-label">{hideTimer ? 'Timer off' : 'Timer'}</span>
           </button>
         </div>
       </div>
