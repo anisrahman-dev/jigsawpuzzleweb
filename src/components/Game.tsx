@@ -8,7 +8,6 @@ import { PuzzleBoard } from './PuzzleBoard'
 import { Controls } from './Controls'
 import { Timer } from './Timer'
 import { CompletionModal } from './CompletionModal'
-import { HintToast } from './HintToast'
 import { ZoomControls } from './ZoomControls'
 import { Spinner } from './Spinner'
 
@@ -110,12 +109,7 @@ export function Game() {
             <p>Cutting your puzzle…</p>
           </div>
         )}
-          {ready && img && (
-            <>
-              <PuzzleBoard img={img} />
-              <HintToast />
-            </>
-          )}
+          {ready && img && <PuzzleBoard img={img} />}
         </div>
         {ready && <ZoomControls />}
       </div>
