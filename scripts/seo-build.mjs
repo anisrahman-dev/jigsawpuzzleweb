@@ -17,6 +17,7 @@ const CATALOG = path.join(ROOT, 'public', 'catalog')
 const SITE = 'JigsawJam'
 const PAGE_SIZE = 24
 const DEFAULT_DOMAIN = 'https://jigsawjam.com'
+const OG_IMAGE = '/logo.png' // 512x512 brand logo used for social previews
 const SITE_URL = (process.env.SITE_URL || DEFAULT_DOMAIN).replace(/\/+$/, '')
 const PRERENDER_PUZZLES = process.env.PRERENDER_PUZZLES !== '0'
 
@@ -102,6 +103,9 @@ function buildHtml(template, { title, description, canonicalPath, prev, next, js
     `    <meta property="og:description" content="${escAttr(description)}" />`,
     `    <meta property="og:type" content="website" />`,
     `    <meta property="og:url" content="${escAttr(abs(canonicalPath))}" />`,
+    `    <meta property="og:image" content="${escAttr(abs(OG_IMAGE))}" />`,
+    `    <meta name="twitter:card" content="summary" />`,
+    `    <meta name="twitter:image" content="${escAttr(abs(OG_IMAGE))}" />`,
     ...jsonld.map((o) => `    <script type="application/ld+json">${ldSafe(o)}</script>`),
   ]
     .filter(Boolean)
@@ -109,6 +113,9 @@ function buildHtml(template, { title, description, canonicalPath, prev, next, js
 
   return template
     .replace(/    <meta name="description"[^>]*\/>\n/, '')
+    // Strip any social tags from the template so we don't emit duplicates.
+    .replace(/    <meta property="og:[^>]*\/>\n/g, '')
+    .replace(/    <meta name="twitter:[^>]*\/>\n/g, '')
     .replace(/    <title>[\s\S]*?<\/title>/, head)
     .replace('<div id="root"></div>', `<div id="root">${body}</div>`)
 }
@@ -333,7 +340,7 @@ async function buildHome(template, labels) {
       },
       {
         '@type': 'Organization', '@id': abs('/#organization'), name: SITE, url: abs('/'),
-        logo: { '@type': 'ImageObject', url: abs('/puzzle.svg') },
+        logo: { '@type': 'ImageObject', url: abs('/logo.png') },
       },
       {
         '@type': 'WebPage', '@id': abs('/#webpage'), url: abs('/'), name: 'Free Online Jigsaw Puzzles',
@@ -363,9 +370,11 @@ async function buildHome(template, labels) {
     `    <meta property="og:description" content="${escAttr(HOME_DESC)}" />`,
     `    <meta property="og:url" content="${escAttr(abs('/'))}" />`,
     `    <meta property="og:locale" content="en_US" />`,
+    `    <meta property="og:image" content="${escAttr(abs(OG_IMAGE))}" />`,
     `    <meta name="twitter:card" content="summary" />`,
     `    <meta name="twitter:title" content="${escAttr(HOME_TITLE)}" />`,
     `    <meta name="twitter:description" content="${escAttr(HOME_DESC)}" />`,
+    `    <meta name="twitter:image" content="${escAttr(abs(OG_IMAGE))}" />`,
     `    <script type="application/ld+json">${ldSafe(graph)}</script>`,
   ].join('\n')
 
@@ -385,6 +394,8 @@ async function buildHome(template, labels) {
 
   const html = template
     .replace(/    <meta name="description"[^>]*\/>\n/, '')
+    .replace(/    <meta property="og:[^>]*\/>\n/g, '')
+    .replace(/    <meta name="twitter:[^>]*\/>\n/g, '')
     .replace(/    <title>[\s\S]*?<\/title>/, head)
     .replace('<div id="root"></div>', `<div id="root">${body}</div>`)
   await fs.writeFile(path.join(DIST, 'index.html'), html)

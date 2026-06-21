@@ -71,7 +71,7 @@ function homeGraph() {
         '@id': absUrl('/#organization'),
         name: SITE,
         url: absUrl('/'),
-        logo: { '@type': 'ImageObject', url: absUrl('/puzzle.svg') },
+        logo: { '@type': 'ImageObject', url: absUrl('/logo.png') },
       },
       {
         '@type': 'WebPage',
