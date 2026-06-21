@@ -10,24 +10,25 @@ const TAG_LABEL: Record<'new' | 'hot' | 'staff', string> = {
 }
 
 /**
- * Build a high-quality, retina-aware source set for a gallery thumbnail.
- * - Pixabay CDN thumbs come as `..._640.jpg`; we serve 640px as the base and a
- *   960px variant so tiles stay crisp on large / high-DPI screens.
- * - Curated Picsum covers (`/id/<n>/600/400`) get a 2× (1200×800) variant.
- * The browser picks a size from `sizes` (one tile ≈ 300px, or ~50vw on phones),
- * so cards look sharp without shipping the full puzzle image.
+ * Build a full-quality, retina-aware source set for a gallery thumbnail.
+ * The top variant is the full-resolution image (`url`) so large / high-DPI
+ * tiles render the original picture; smaller variants keep phones light.
+ * - Pixabay: thumb is `..._640.jpg`, full is `..._1280.jpg` → 640 / 960 / 1280.
+ * - Picsum covers (`/id/<n>/600/400`) → 600 / 1200 (full 1200×800).
+ * The browser picks the best size from `sizes` (tile ≈ 300px, ~50vw on phones).
  */
-function thumbSources(thumbUrl: string): { src: string; srcSet?: string } {
+function thumbSources(url: string, thumbUrl: string): { src: string; srcSet?: string } {
   if (thumbUrl.includes('_640.')) {
-    return { src: thumbUrl, srcSet: `${thumbUrl} 640w, ${thumbUrl.replace('_640.', '_960.')} 960w` }
+    const at960 = thumbUrl.replace('_640.', '_960.')
+    return { src: url, srcSet: `${thumbUrl} 640w, ${at960} 960w, ${url} 1280w` }
   }
   const m = thumbUrl.match(/picsum\.photos\/id\/(\d+)\//)
   if (m) {
     const id = m[1]
     const at = (w: number, h: number) => `https://picsum.photos/id/${id}/${w}/${h}`
-    return { src: at(600, 400), srcSet: `${at(600, 400)} 600w, ${at(1200, 800)} 1200w` }
+    return { src: at(1200, 800), srcSet: `${at(600, 400)} 600w, ${at(1200, 800)} 1200w` }
   }
-  return { src: thumbUrl }
+  return { src: url || thumbUrl }
 }
 
 /**
@@ -38,7 +39,7 @@ function thumbSources(thumbUrl: string): { src: string; srcSet?: string } {
  */
 export function PuzzleCard({ puzzle }: { puzzle: GalleryPuzzle }) {
   const tag = puzzle.tag
-  const { src, srcSet } = thumbSources(puzzle.thumbUrl)
+  const { src, srcSet } = thumbSources(puzzle.url, puzzle.thumbUrl)
 
   return (
     <button
@@ -49,8 +50,8 @@ export function PuzzleCard({ puzzle }: { puzzle: GalleryPuzzle }) {
     >
       <img
         className="card-img"
-        // High-quality thumbnail (640px base, 960px on large/retina tiles) so
-        // browse grids look crisp; the full image still loads only on play.
+        // Full-quality image on large/retina tiles, lighter variants on phones
+        // (see thumbSources). Lazy + async keeps the grid fast to load.
         src={src}
         srcSet={srcSet}
         sizes="(max-width: 600px) 50vw, 300px"

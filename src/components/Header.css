@@ -19,6 +19,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space);
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 /* Profile - compact round icon button at the far right, muted until hover */
@@ -200,6 +202,14 @@
   }
 }
 
+/* ── Phones (≤480px): drop the wordmark so the bar never overflows ────────── */
+@media (max-width: 480px) {
+  /* Glyph-only brand frees the width the action icons + score need. */
+  .header-brand .brand-text {
+    display: none;
+  }
+}
+
 /* ── Very narrow phones (≤400px): tighten further so nothing overflows ─────── */
 @media (max-width: 400px) {
   .header-inner {
@@ -219,16 +229,15 @@
     padding: 6px 10px;
     gap: 4px;
   }
-  /* Keep the brand glyph; the wordmark hides at 360px (BrandMark.css) */
   .header-brand {
     padding: 4px;
     margin-left: -4px;
   }
 }
 
-/* ── Tiny phones (≤360px): hide the wordmark, glyph-only brand ────────────── */
-@media (max-width: 360px) {
-  .header-brand .brand-text {
+/* ── Tiny phones (≤340px): hide the score chip so the icons always fit ────── */
+@media (max-width: 340px) {
+  .header-points {
     display: none;
   }
 }
