@@ -21,6 +21,28 @@ export function Footer() {
         </div>
 
         <nav className="footer-links" aria-label="Footer">
+          <a
+            href="/daily-jigsaw-puzzle"
+            className="footer-link"
+            onClick={(e) => {
+              e.preventDefault()
+              useUiStore.getState().showDaily()
+            }}
+          >
+            <Icon name="sparkle" size={16} />
+            Daily puzzle
+          </a>
+          <a
+            href="/categories"
+            className="footer-link"
+            onClick={(e) => {
+              e.preventDefault()
+              useUiStore.getState().showCategories()
+            }}
+          >
+            <Icon name="grid" size={16} />
+            Categories
+          </a>
           <button
             type="button"
             className="footer-link"

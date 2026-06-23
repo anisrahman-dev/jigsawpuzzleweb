@@ -459,7 +459,7 @@ async function buildHome(template, labels) {
   const body =
     `<main><h1>Free Online Jigsaw Puzzles</h1>` +
     `<p>JigsawJam is a free online jigsaw puzzle site you play right in your browser - no login, no app, and no downloads. Choose from 32,850 puzzles across 73 categories, set any puzzle from 12 to 300 pieces, and play on desktop or mobile.</p>` +
-    `<p>A new <a href="/play">Puzzle of the Day</a> is featured every day, and during seasonal events such as Halloween, Christmas and the Summer Solstice your solves earn 3x points. Browse <a href="/categories">all 73 categories</a> or jump into a popular one:</p>` +
+    `<p>A new <a href="/daily-jigsaw-puzzle">Puzzle of the Day</a> is featured every day, and during seasonal events such as Halloween, Christmas and the Summer Solstice your solves earn 3x points. Browse <a href="/categories">all 73 categories</a> or jump into a popular one:</p>` +
     `<ul>${catLinks}</ul>` +
     `<section aria-labelledby="home-faq"><h2 id="home-faq">Frequently asked questions</h2>${faq}</section>` +
     `</main>`
@@ -471,6 +471,75 @@ async function buildHome(template, labels) {
     .replace(/    <title>[\s\S]*?<\/title>/, head)
     .replace('<div id="root"></div>', `<div id="root">${prerenderWrap(body)}</div>`)
   await fs.writeFile(path.join(DIST, 'index.html'), html)
+}
+
+// ── Daily Jigsaw Puzzle / Puzzle of the Day (/daily-jigsaw-puzzle) ────────────
+// A dedicated landing page that owns the high-volume "daily jigsaw puzzle" /
+// "puzzle of the day" search cluster (rivals rank #1 with a page like this).
+const DAILY_PATH = '/daily-jigsaw-puzzle'
+const DAILY_TITLE = `Daily Jigsaw Puzzle - Free Puzzle of the Day | ${SITE}`
+const DAILY_DESC =
+  "Play today's free daily jigsaw puzzle online - a new Puzzle of the Day every day, solvable from 12 to 300 pieces. No login, no app, no downloads."
+const DAILY_FAQ = [
+  ['What is the daily jigsaw puzzle?', `A new featured jigsaw puzzle - the Puzzle of the Day - is published on ${SITE} every day. Everyone sees the same puzzle each calendar day, and it is free to play with no login or download.`],
+  ['Is the daily puzzle of the day free?', `Yes. Today's daily jigsaw puzzle, and every puzzle on ${SITE}, is completely free to play online in your browser - no account, no subscription and no app required.`],
+  ['How many pieces does the daily puzzle have?', 'You choose. Every daily jigsaw puzzle can be played from 12 pieces up to 300 pieces, so you can do a quick break or a longer, relaxing challenge.'],
+  ['When does a new daily puzzle appear?', 'A fresh Puzzle of the Day rotates in each calendar day. Come back tomorrow for a new free daily jigsaw puzzle.'],
+]
+
+async function buildDaily(template, labels) {
+  const topKeys = ['dogs', 'cats', 'birds', 'flowers', 'beaches', 'landscapes', 'space', 'food', 'castles', 'trains']
+  const top = topKeys.map((k) => {
+    const label = labels.get(k) || titleCase(k)
+    return { label, path: `/${categorySlug(label)}` }
+  })
+  const catLinks = top
+    .map((c) => `<li><a href="${escAttr(c.path)}">${escHtml(c.label)} puzzles</a></li>`)
+    .join('')
+  const faq = DAILY_FAQ
+    .map(([q, a]) => `<div class="faq-item"><h3>${escHtml(q)}</h3><p>${escHtml(a)}</p></div>`)
+    .join('')
+  const body =
+    `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>Daily Jigsaw Puzzle</span></nav>` +
+    `<h1>Daily Jigsaw Puzzle - Puzzle of the Day</h1>` +
+    `<p>A brand-new Puzzle of the Day is featured every day on ${escHtml(SITE)} - free to play right in your browser with no login, no app and no downloads. Solve today's daily jigsaw puzzle from 12 to 300 pieces on desktop or mobile, then come back tomorrow for a fresh one.</p>` +
+    `<p>Want more than the daily puzzle? Browse <a href="/categories">all 73 categories</a> of free online jigsaw puzzles, or jump into a popular one:</p>` +
+    `<ul>${catLinks}</ul>` +
+    `<section aria-labelledby="daily-faq"><h2 id="daily-faq">Daily jigsaw puzzle - frequently asked questions</h2>${faq}</section>` +
+    `</main>`
+
+  const jsonld = [
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: 'Daily Jigsaw Puzzle', path: DAILY_PATH },
+    ]),
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': abs(`${DAILY_PATH}#webpage`),
+      url: abs(DAILY_PATH),
+      name: 'Daily Jigsaw Puzzle - Puzzle of the Day',
+      description: DAILY_DESC,
+      isPartOf: { '@type': 'WebSite', name: SITE, url: abs('/') },
+      inLanguage: 'en',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: DAILY_FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
+    },
+  ]
+
+  const html = buildHtml(template, {
+    title: DAILY_TITLE,
+    description: DAILY_DESC,
+    canonicalPath: DAILY_PATH,
+    prev: null,
+    next: null,
+    jsonld,
+    body,
+  })
+  await writePretty(DAILY_PATH, html)
 }
 
 async function main() {
@@ -583,6 +652,10 @@ async function main() {
     evCount++
   }
   console.log(`  ${evCount} event pages`)
+
+  // Prerender the Daily Jigsaw Puzzle / Puzzle of the Day landing page.
+  await buildDaily(template, labels)
+  sitemap.push({ loc: abs(DAILY_PATH), priority: '0.9' })
 
   // Prerender the home page LAST (overwrites the bare shell template).
   await buildHome(template, labels)

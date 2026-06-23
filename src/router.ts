@@ -55,6 +55,7 @@ export function urlForRoute(
   if (view === 'puzzle' && puzzle)
     return `/puzzle/${puzzle.category}/${puzzle.id}/${puzzle.slug}`
   if (view === 'event' && event) return '/event/' + event.key
+  if (view === 'daily') return '/daily-jigsaw-puzzle'
   if (view === 'categories') return '/categories'
   if (view === 'category' && category) {
     if (category.key === 'search')
@@ -74,6 +75,7 @@ export function parseRoute(): Route {
   const page = Number.isInteger(pageParam) && pageParam > 1 ? pageParam : 1
   if (path === '/' || path === '') return { view: 'home', ...none }
   if (path === '/categories') return { view: 'categories', ...none }
+  if (path === '/daily-jigsaw-puzzle') return { view: 'daily', ...none }
   if (path === '/play') return { view: 'play', ...none }
   if (path.startsWith('/puzzle/')) {
     const parts = path.split('/').filter(Boolean) // ['puzzle', category, id, ...slug]

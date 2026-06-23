@@ -264,9 +264,16 @@ export function GalleryHome() {
           JigsawJam is a free online jigsaw puzzle site you play right in your browser - no
           login, no app, and no downloads. Choose from 32,850 puzzles across 73 categories, set any
           puzzle from 12 to 300 pieces, and play on desktop or mobile. A new{' '}
-          <button type="button" className="ghome-inlink" onClick={() => useUiStore.getState().goHome()}>
+          <a
+            href="/daily-jigsaw-puzzle"
+            className="ghome-inlink"
+            onClick={(e) => {
+              e.preventDefault()
+              useUiStore.getState().showDaily()
+            }}
+          >
             Puzzle of the Day
-          </button>{' '}
+          </a>{' '}
           is featured daily, and seasonal events earn 3× points.
         </p>
         <ul className="ghome-toplinks">

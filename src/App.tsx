@@ -6,6 +6,7 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { GalleryHome } from '@/components/GalleryHome'
 import { CategoriesPage } from '@/components/CategoriesPage'
+import { DailyPage } from '@/components/DailyPage'
 import { CategoryPage } from '@/components/CategoryPage'
 import { PuzzlePage } from '@/components/PuzzlePage'
 import { EventPage } from '@/components/EventPage'
@@ -65,6 +66,7 @@ export function App() {
       <Header />
       <main className="app-main">
         {view === 'home' && <GalleryHome />}
+        {view === 'daily' && <DailyPage />}
         {view === 'categories' && <CategoriesPage />}
         {view === 'category' && <CategoryPage />}
         {view === 'puzzle' && <PuzzlePage />}

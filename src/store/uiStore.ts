@@ -6,7 +6,7 @@ import { EVENT_POINTS_MULTIPLIER } from '@/data/events'
 import type { GalleryPuzzle } from '@/data/gallery'
 import { parseRoute, puzzleSlug, type PuzzleRef } from '@/router'
 
-export type View = 'home' | 'categories' | 'category' | 'event' | 'play' | 'puzzle'
+export type View = 'home' | 'categories' | 'category' | 'event' | 'play' | 'puzzle' | 'daily'
 
 interface UiState {
   view: View
@@ -42,6 +42,8 @@ interface UiState {
   startPuzzle: (img: PuzzleImage, difficulty: Difficulty) => void
   goHome: () => void
   showCategories: () => void
+  /** Open the Daily Jigsaw Puzzle / Puzzle of the Day landing page. */
+  showDaily: () => void
   browseCategory: (node: CategoryNode) => void
   clearCategory: () => void
   /** Jump to a page within the current category grid. */
@@ -105,6 +107,8 @@ export const useUiStore = create<UiState>((set, get) => ({
     }),
   goHome: () => set({ view: 'home', selectedCategory: null, selectedEvent: null, contextMultiplier: 1 }),
   showCategories: () => set({ view: 'categories', selectedEvent: null, contextMultiplier: 1 }),
+  showDaily: () =>
+    set({ view: 'daily', selectedCategory: null, selectedEvent: null, contextMultiplier: 1 }),
   browseCategory: (node) =>
     set({
       selectedCategory: node,
