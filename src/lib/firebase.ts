@@ -1,22 +1,26 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app'
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics'
 
+// Firebase web app config. These values are public by design — they ship to
+// every visitor's browser — so hardcoding them is safe and means Analytics
+// works on any deploy without configuring env vars. Lock down data access with
+// Firebase Security Rules / App Check, not by hiding this config.
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: 'AIzaSyByaK_OQMYh6yzF8OtSatzlSV_-JdgP3bA',
+  authDomain: 'jigsawjamweb.firebaseapp.com',
+  projectId: 'jigsawjamweb',
+  storageBucket: 'jigsawjamweb.firebasestorage.app',
+  messagingSenderId: '337114226728',
+  appId: '1:337114226728:web:89bda08de44f3fda3b151d',
+  measurementId: 'G-SM6L910X32',
 }
 
 let app: FirebaseApp | undefined
 let analytics: Analytics | undefined
 
-// Only initialize when a config is present (skips local dev without env vars)
-// and only in the browser where Analytics is supported.
-if (firebaseConfig.apiKey && typeof window !== 'undefined') {
+// Only initialize in the browser where Analytics is supported (skips the
+// Node-based SSR/prerender build).
+if (typeof window !== 'undefined') {
   app = initializeApp(firebaseConfig)
   isSupported()
     .then((supported) => {
