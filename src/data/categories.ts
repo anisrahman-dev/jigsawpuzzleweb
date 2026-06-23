@@ -35,6 +35,7 @@ export const CATEGORY_GROUPS: CategoryGroup[] = [
       n('other-animals', 'Other Animals', 'wildlife animal'),
       n('primates', 'Primates', 'monkey ape primate'),
       n('reptiles', 'Reptiles', 'reptile lizard snake'),
+      n('water-buffalo', 'Water Buffalo', 'water buffalo'),
     ],
   },
   {
@@ -193,6 +194,7 @@ export const CATEGORY_COVERS: Record<string, string> = {
   'other-animals': 'https://cdn.pixabay.com/photo/2024/12/27/14/58/owl-9294302_1280.jpg',
   primates: 'https://cdn.pixabay.com/photo/2022/01/20/15/34/monkey-6952630_1280.jpg',
   reptiles: 'https://cdn.pixabay.com/photo/2026/06/12/14/19/14-19-50-321_1280.jpg',
+  'water-buffalo': 'https://cdn.pixabay.com/photo/2023/07/04/10/57/water-buffalo-8106043_1280.jpg',
   abstract: 'https://cdn.pixabay.com/photo/2022/09/15/09/59/water-7456116_1280.jpg',
   'classic-paintings': 'https://cdn.pixabay.com/photo/2013/02/17/13/15/c-m-coolidge-82531_1280.jpg',
   costumes: 'https://cdn.pixabay.com/photo/2014/04/17/13/30/carnival-326494_1280.jpg',
