@@ -1,0 +1,62 @@
+/* Upload dropzone for the custom puzzle maker. */
+.custom-drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  margin: 1.25rem 0 1.5rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  color: var(--accent);
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.custom-drop:hover,
+.custom-drop:focus-within {
+  border-color: var(--accent);
+  background: var(--accent-softer);
+}
+
+/* The native input covers the zone so a click or drop anywhere works, but the
+   visible button is what users see. */
+.custom-drop-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.custom-drop .btn {
+  position: relative;
+  z-index: 1;
+}
+
+.custom-drop-title {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.custom-drop-sub {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.custom-drop-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}
+
+.custom-drop-error {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: #b4232a;
+}

@@ -295,6 +295,40 @@ export function GalleryHome() {
           })}
         </ul>
 
+        <h2 className="section-title">More ways to play</h2>
+        <ul className="ghome-toplinks">
+          <li>
+            <a href="/daily-jigsaw-puzzle" onClick={(e) => { e.preventDefault(); useUiStore.getState().showDaily() }}>
+              Daily jigsaw puzzle
+            </a>
+          </li>
+          <li>
+            <a href="/create-a-custom-jigsaw-puzzle" onClick={(e) => { e.preventDefault(); useUiStore.getState().showCustom() }}>
+              Create a custom puzzle from a photo
+            </a>
+          </li>
+          <li>
+            <a href="/300-piece-jigsaw-puzzles" onClick={(e) => { e.preventDefault(); useUiStore.getState().showLanding('300-piece-jigsaw-puzzles') }}>
+              300 piece jigsaw puzzles
+            </a>
+          </li>
+          <li>
+            <a href="/jigsaw-puzzles-for-adults" onClick={(e) => { e.preventDefault(); useUiStore.getState().showLanding('jigsaw-puzzles-for-adults') }}>
+              Jigsaw puzzles for adults
+            </a>
+          </li>
+          <li>
+            <a href="/jigsaw-puzzles-for-kids" onClick={(e) => { e.preventDefault(); useUiStore.getState().showLanding('jigsaw-puzzles-for-kids') }}>
+              Jigsaw puzzles for kids
+            </a>
+          </li>
+          <li>
+            <a href="/jigsaw-puzzles-for-seniors" onClick={(e) => { e.preventDefault(); useUiStore.getState().showLanding('jigsaw-puzzles-for-seniors') }}>
+              Jigsaw puzzles for seniors
+            </a>
+          </li>
+        </ul>
+
         <h2 className="section-title ghome-faq-title">Frequently asked questions</h2>
         <dl className="ghome-faq">
           {HOME_FAQ.map((f) => (

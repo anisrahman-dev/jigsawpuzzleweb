@@ -2,7 +2,11 @@
 // view + selected category/event, and back. Pure functions - no store import.
 import { categoryBySlug, categorySlug, type CategoryNode } from '@/data/categories'
 import { eventByKey, type PuzzleEvent } from '@/data/events'
+import { LANDING_KEYS } from '@/data/landings'
 import type { View } from '@/store/uiStore'
+
+/** URL path for the custom-puzzle-maker landing page. */
+const CUSTOM_KEY = 'create-a-custom-jigsaw-puzzle'
 
 /** A single puzzle's URL parts: category key, raw image id, and the descriptive slug. */
 export interface PuzzleRef {
@@ -19,6 +23,8 @@ export interface Route {
   page: number
   /** Target puzzle for the puzzle-detail view. */
   puzzle: PuzzleRef | null
+  /** Active SEO landing-page key (landing/custom views), else null. */
+  landing: string | null
 }
 
 /** Kebab-case a string for use in a URL slug. */
@@ -51,11 +57,14 @@ export function urlForRoute(
   event: PuzzleEvent | null,
   page = 1,
   puzzle: PuzzleRef | null = null,
+  landing: string | null = null,
 ): string {
   if (view === 'puzzle' && puzzle)
     return `/puzzle/${puzzle.category}/${puzzle.id}/${puzzle.slug}`
   if (view === 'event' && event) return '/event/' + event.key
   if (view === 'daily') return '/daily-jigsaw-puzzle'
+  if (view === 'custom') return '/' + CUSTOM_KEY
+  if (view === 'landing' && landing) return '/' + landing
   if (view === 'categories') return '/categories'
   if (view === 'category' && category) {
     if (category.key === 'search')
@@ -68,7 +77,7 @@ export function urlForRoute(
 
 /** Parse the current browser location into an app state. */
 export function parseRoute(): Route {
-  const none = { category: null, event: null, page: 1, puzzle: null }
+  const none = { category: null, event: null, page: 1, puzzle: null, landing: null }
   if (typeof window === 'undefined') return { view: 'home', ...none }
   const path = window.location.pathname
   const pageParam = Number(new URLSearchParams(window.location.search).get('page'))
@@ -76,6 +85,7 @@ export function parseRoute(): Route {
   if (path === '/' || path === '') return { view: 'home', ...none }
   if (path === '/categories') return { view: 'categories', ...none }
   if (path === '/daily-jigsaw-puzzle') return { view: 'daily', ...none }
+  if (path === '/' + CUSTOM_KEY) return { view: 'custom', ...none, landing: CUSTOM_KEY }
   if (path === '/play') return { view: 'play', ...none }
   if (path.startsWith('/puzzle/')) {
     const parts = path.split('/').filter(Boolean) // ['puzzle', category, id, ...slug]
@@ -85,14 +95,14 @@ export function parseRoute(): Route {
         id: decodeURIComponent(parts[2]),
         slug: parts.slice(3).map(decodeURIComponent).join('/'),
       }
-      return { view: 'puzzle', category: null, event: null, page: 1, puzzle }
+      return { view: 'puzzle', category: null, event: null, page: 1, puzzle, landing: null }
     }
     return { view: 'home', ...none }
   }
   if (path.startsWith('/event/')) {
     const key = decodeURIComponent(path.slice('/event/'.length))
     const event = eventByKey(key)
-    if (event) return { view: 'event', category: null, event, page: 1, puzzle: null }
+    if (event) return { view: 'event', category: null, event, page: 1, puzzle: null, landing: null }
     return { view: 'home', ...none }
   }
   if (path === '/search') {
@@ -104,12 +114,15 @@ export function parseRoute(): Route {
         event: null,
         page,
         puzzle: null,
+        landing: null,
       }
     return { view: 'home', ...none }
   }
   const slug = decodeURIComponent(path.replace(/^\/+|\/+$/g, ''))
+  if (LANDING_KEYS.has(slug))
+    return { view: slug === CUSTOM_KEY ? 'custom' : 'landing', ...none, landing: slug }
   const node = categoryBySlug(slug)
-  if (node) return { view: 'category', category: node, event: null, page, puzzle: null }
+  if (node) return { view: 'category', category: node, event: null, page, puzzle: null, landing: null }
   return { view: 'home', ...none }
 }
 

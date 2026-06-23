@@ -461,6 +461,15 @@ async function buildHome(template, labels) {
     `<p>JigsawJam is a free online jigsaw puzzle site you play right in your browser - no login, no app, and no downloads. Choose from 32,850 puzzles across 73 categories, set any puzzle from 12 to 300 pieces, and play on desktop or mobile.</p>` +
     `<p>A new <a href="/daily-jigsaw-puzzle">Puzzle of the Day</a> is featured every day, and during seasonal events such as Halloween, Christmas and the Summer Solstice your solves earn 3x points. Browse <a href="/categories">all 73 categories</a> or jump into a popular one:</p>` +
     `<ul>${catLinks}</ul>` +
+    `<h2>More ways to play</h2>` +
+    `<ul>` +
+    `<li><a href="/daily-jigsaw-puzzle">Daily jigsaw puzzle</a></li>` +
+    `<li><a href="/create-a-custom-jigsaw-puzzle">Create a custom puzzle from a photo</a></li>` +
+    `<li><a href="/300-piece-jigsaw-puzzles">300 piece jigsaw puzzles</a></li>` +
+    `<li><a href="/jigsaw-puzzles-for-adults">Jigsaw puzzles for adults</a></li>` +
+    `<li><a href="/jigsaw-puzzles-for-kids">Jigsaw puzzles for kids</a></li>` +
+    `<li><a href="/jigsaw-puzzles-for-seniors">Jigsaw puzzles for seniors</a></li>` +
+    `</ul>` +
     `<section aria-labelledby="home-faq"><h2 id="home-faq">Frequently asked questions</h2>${faq}</section>` +
     `</main>`
 
@@ -540,6 +549,67 @@ async function buildDaily(template, labels) {
     body,
   })
   await writePretty(DAILY_PATH, html)
+}
+
+// ── SEO landing pages (custom maker, piece-count, audience) ─────────────────
+// Driven by src/data/landings.json - the same file the React app imports.
+async function buildLandings(template, labels, sitemap) {
+  const raw = JSON.parse(await fs.readFile(path.join(ROOT, 'src', 'data', 'landings.json'), 'utf8'))
+  for (const [key, l] of Object.entries(raw)) {
+    const catLinks = (l.categoryKeys || [])
+      .map((k) => {
+        const label = labels.get(k) || titleCase(k)
+        return `<li><a href="/${escAttr(categorySlug(label))}">${escHtml(label)} puzzles</a></li>`
+      })
+      .join('')
+    const paras = (l.paras || []).map((p) => `<p>${escHtml(p)}</p>`).join('')
+    const faq = (l.faq || [])
+      .map(([q, a]) => `<div class="faq-item"><h3>${escHtml(q)}</h3><p>${escHtml(a)}</p></div>`)
+      .join('')
+    const body =
+      `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>${escHtml(l.h1)}</span></nav>` +
+      `<h1>${escHtml(l.h1)}</h1>` +
+      `<p>${escHtml(l.lead)}</p>` +
+      paras +
+      `<ul>${catLinks}<li><a href="/categories">All categories</a></li></ul>` +
+      `<section aria-labelledby="landing-faq"><h2 id="landing-faq">Frequently asked questions</h2>${faq}</section>` +
+      `</main>`
+
+    const jsonld = [
+      breadcrumbLd([
+        { name: 'Home', path: '/' },
+        { name: l.h1, path: `/${key}` },
+      ]),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        '@id': abs(`/${key}#webpage`),
+        url: abs(`/${key}`),
+        name: l.h1,
+        description: l.description,
+        isPartOf: { '@type': 'WebSite', name: SITE, url: abs('/') },
+        inLanguage: 'en',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: (l.faq || []).map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
+      },
+    ]
+
+    const title = l.title.includes(SITE) ? l.title : `${l.title} | ${SITE}`
+    const html = buildHtml(template, {
+      title,
+      description: l.description,
+      canonicalPath: `/${key}`,
+      prev: null,
+      next: null,
+      jsonld,
+      body,
+    })
+    await writePretty(`/${key}`, html)
+    sitemap.push({ loc: abs(`/${key}`), priority: l.kind === 'custom' ? '0.8' : '0.7' })
+  }
 }
 
 async function main() {
@@ -656,6 +726,9 @@ async function main() {
   // Prerender the Daily Jigsaw Puzzle / Puzzle of the Day landing page.
   await buildDaily(template, labels)
   sitemap.push({ loc: abs(DAILY_PATH), priority: '0.9' })
+
+  // Prerender the SEO landing pages (custom maker, piece-count, audience).
+  await buildLandings(template, labels, sitemap)
 
   // Prerender the home page LAST (overwrites the bare shell template).
   await buildHome(template, labels)

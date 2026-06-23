@@ -33,6 +33,17 @@ export function Footer() {
             Daily puzzle
           </a>
           <a
+            href="/create-a-custom-jigsaw-puzzle"
+            className="footer-link"
+            onClick={(e) => {
+              e.preventDefault()
+              useUiStore.getState().showCustom()
+            }}
+          >
+            <Icon name="puzzle" size={16} />
+            Create a puzzle
+          </a>
+          <a
             href="/categories"
             className="footer-link"
             onClick={(e) => {

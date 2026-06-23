@@ -6,7 +6,16 @@ import { EVENT_POINTS_MULTIPLIER } from '@/data/events'
 import type { GalleryPuzzle } from '@/data/gallery'
 import { parseRoute, puzzleSlug, type PuzzleRef } from '@/router'
 
-export type View = 'home' | 'categories' | 'category' | 'event' | 'play' | 'puzzle' | 'daily'
+export type View =
+  | 'home'
+  | 'categories'
+  | 'category'
+  | 'event'
+  | 'play'
+  | 'puzzle'
+  | 'daily'
+  | 'landing'
+  | 'custom'
 
 interface UiState {
   view: View
@@ -28,6 +37,8 @@ interface UiState {
   detailPuzzle: GalleryPuzzle | null
   /** URL parts for the current puzzle detail page. */
   puzzleRoute: PuzzleRef | null
+  /** Key of the active SEO landing page (landing/custom views), else null. */
+  landingKey: string | null
 
   /** Points multiplier for the current browsing context (3 on an event page). */
   contextMultiplier: number
@@ -44,6 +55,10 @@ interface UiState {
   showCategories: () => void
   /** Open the Daily Jigsaw Puzzle / Puzzle of the Day landing page. */
   showDaily: () => void
+  /** Open an SEO landing page (piece-count / audience) by its key. */
+  showLanding: (key: string) => void
+  /** Open the "create a custom jigsaw puzzle" page. */
+  showCustom: () => void
   browseCategory: (node: CategoryNode) => void
   clearCategory: () => void
   /** Jump to a page within the current category grid. */
@@ -60,6 +75,7 @@ interface UiState {
     event: PuzzleEvent | null,
     page?: number,
     puzzle?: PuzzleRef | null,
+    landing?: string | null,
   ) => void
 
   openPreview: (img: PuzzleImage) => void
@@ -89,6 +105,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   categoryPage: initialRoute.page,
   detailPuzzle: null,
   puzzleRoute: initialRoute.puzzle,
+  landingKey: initialRoute.landing,
   contextMultiplier: initialRoute.event ? EVENT_POINTS_MULTIPLIER : 1,
   previewMultiplier: 1,
   playMultiplier: 1,
@@ -105,16 +122,29 @@ export const useUiStore = create<UiState>((set, get) => ({
       previewImage: null,
       playMultiplier: get().previewMultiplier,
     }),
-  goHome: () => set({ view: 'home', selectedCategory: null, selectedEvent: null, contextMultiplier: 1 }),
-  showCategories: () => set({ view: 'categories', selectedEvent: null, contextMultiplier: 1 }),
+  goHome: () =>
+    set({ view: 'home', selectedCategory: null, selectedEvent: null, landingKey: null, contextMultiplier: 1 }),
+  showCategories: () =>
+    set({ view: 'categories', selectedEvent: null, landingKey: null, contextMultiplier: 1 }),
   showDaily: () =>
-    set({ view: 'daily', selectedCategory: null, selectedEvent: null, contextMultiplier: 1 }),
+    set({ view: 'daily', selectedCategory: null, selectedEvent: null, landingKey: null, contextMultiplier: 1 }),
+  showLanding: (landingKey) =>
+    set({ view: 'landing', landingKey, selectedCategory: null, selectedEvent: null, contextMultiplier: 1 }),
+  showCustom: () =>
+    set({
+      view: 'custom',
+      landingKey: 'create-a-custom-jigsaw-puzzle',
+      selectedCategory: null,
+      selectedEvent: null,
+      contextMultiplier: 1,
+    }),
   browseCategory: (node) =>
     set({
       selectedCategory: node,
       view: 'category',
       selectedEvent: null,
       categoryPage: 1,
+      landingKey: null,
       contextMultiplier: 1,
     }),
   clearCategory: () => set({ selectedCategory: null }),
@@ -135,15 +165,17 @@ export const useUiStore = create<UiState>((set, get) => ({
       selectedEvent: event,
       view: 'event',
       selectedCategory: null,
+      landingKey: null,
       contextMultiplier: EVENT_POINTS_MULTIPLIER,
     }),
-  applyRoute: (view, category, event, page = 1, puzzle = null) =>
+  applyRoute: (view, category, event, page = 1, puzzle = null, landing = null) =>
     set((s) => ({
       view,
       selectedCategory: category,
       selectedEvent: event,
       categoryPage: page,
       puzzleRoute: puzzle,
+      landingKey: landing,
       // Keep the resolved puzzle only if the route still points at it.
       detailPuzzle:
         puzzle && s.detailPuzzle && s.detailPuzzle.id === `c-${puzzle.id}` ? s.detailPuzzle : null,

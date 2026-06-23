@@ -1,0 +1,88 @@
+{
+  "create-a-custom-jigsaw-puzzle": {
+    "kind": "custom",
+    "title": "Create a Custom Jigsaw Puzzle from a Photo - Free | JigsawJam",
+    "h1": "Create a Custom Jigsaw Puzzle from Your Photo",
+    "description": "Turn any photo into a free online jigsaw puzzle. Upload a picture and play it as a custom jigsaw from 12 to 300 pieces - no login, no downloads. Your photo never leaves your device.",
+    "lead": "Make your own jigsaw puzzle from any picture - a family photo, a pet, a holiday snap or a favorite artwork. Upload an image and JigsawJam turns it into a playable custom jigsaw puzzle in seconds, free, with no login or download.",
+    "paras": [
+      "Choose your difficulty from 12 pieces for a quick game up to 300 pieces for a longer challenge, then drag and drop the pieces together right in your browser on desktop or mobile.",
+      "Your photo is processed entirely on your own device - it is never uploaded to a server - so making a custom puzzle is private and instant."
+    ],
+    "categoryKeys": ["dogs", "cats", "flowers", "landscapes", "beaches", "space"],
+    "faq": [
+      ["How do I make a jigsaw puzzle from a photo?", "Click Choose a photo (or drag an image onto the page), pick how many pieces you want, and press Play. Your picture becomes a custom jigsaw puzzle you can solve straight away in your browser."],
+      ["Is the custom puzzle maker free?", "Yes. Creating and playing a custom jigsaw puzzle from your own photo is completely free on JigsawJam - no account, no subscription and no download."],
+      ["Is my photo uploaded anywhere?", "No. Your image is turned into a puzzle locally in your browser and is never sent to or stored on a server, so it stays private to you."],
+      ["How many pieces can my custom puzzle have?", "You can play your photo puzzle from 12 pieces up to 300 pieces - pick fewer for a quick game or more for a relaxing challenge."]
+    ]
+  },
+  "300-piece-jigsaw-puzzles": {
+    "kind": "pieces",
+    "difficulty": "expert",
+    "title": "300 Piece Jigsaw Puzzles - Free Online | JigsawJam",
+    "h1": "300 Piece Jigsaw Puzzles Online",
+    "description": "Play free 300 piece jigsaw puzzles online - solve any of 32,850 hand-picked pictures at 300 pieces in your browser. No login, no app, no downloads.",
+    "lead": "Looking for a proper challenge? Play any JigsawJam picture as a 300 piece jigsaw puzzle, free and online - no login, no app and no downloads. Set the difficulty to 300 pieces and solve right in your browser on desktop or mobile.",
+    "paras": [
+      "Every one of our 32,850 puzzles can be played at 300 pieces (or scaled down to 12, 48 or 108 pieces whenever you want something quicker). Pick a category below, choose a picture, and select 300 pieces to start."
+    ],
+    "categoryKeys": ["landscapes", "castles", "beaches", "space", "flowers", "trains"],
+    "faq": [
+      ["Are the 300 piece jigsaw puzzles free?", "Yes. Every 300 piece jigsaw puzzle on JigsawJam is free to play online - no login, no app and no downloads."],
+      ["Can I change the number of pieces?", "Yes. Any puzzle can be played at 12, 48, 108 or 300 pieces, so you can switch between a quick game and a longer 300 piece challenge."],
+      ["Do I need to download anything?", "No. All 300 piece puzzles play directly in your web browser on desktop or mobile - nothing to install."]
+    ]
+  },
+  "jigsaw-puzzles-for-adults": {
+    "kind": "audience",
+    "difficulty": "hard",
+    "title": "Free Jigsaw Puzzles for Adults - Play Online | JigsawJam",
+    "h1": "Free Online Jigsaw Puzzles for Adults",
+    "description": "Free jigsaw puzzles for adults you play online - 32,850 puzzles up to 300 pieces, no login, no app, no downloads. Relax with landscapes, castles, art and more.",
+    "lead": "Free online jigsaw puzzles for adults - relax with beautiful, high-resolution pictures and solve them at up to 300 pieces, right in your browser. No login, no app, and no downloads, on desktop or mobile.",
+    "paras": [
+      "Pick the challenge that suits you: 12 or 48 pieces for a quick break, or 108 and 300 pieces for a longer, more absorbing session. Browse 32,850 puzzles across 73 categories - landscapes, castles, travel, art, food and more."
+    ],
+    "categoryKeys": ["landscapes", "castles", "beaches", "flowers", "trains", "food"],
+    "faq": [
+      ["Are the jigsaw puzzles for adults free?", "Yes. Every puzzle on JigsawJam is free to play online with no account, no subscription and no download."],
+      ["What are the best jigsaw puzzles for adults?", "For a relaxing, satisfying challenge, adults tend to enjoy landscapes, castles, scenic travel and art puzzles played at 108 or 300 pieces - all free on JigsawJam."],
+      ["Do I need to download an app?", "No. All puzzles play directly in your browser on desktop, tablet or mobile - nothing to install."]
+    ]
+  },
+  "jigsaw-puzzles-for-kids": {
+    "kind": "audience",
+    "difficulty": "easy",
+    "title": "Free Online Jigsaw Puzzles for Kids - Play Now | JigsawJam",
+    "h1": "Free Online Jigsaw Puzzles for Kids",
+    "description": "Free online jigsaw puzzles for kids - easy 12 and 48 piece puzzles of animals, dogs, cats and more. Play in the browser, no login, no app, no downloads.",
+    "lead": "Free online jigsaw puzzles for kids - start with easy 12 and 48 piece puzzles of friendly animals, pets and bright pictures. They play right in the browser with no login, no app and no downloads.",
+    "paras": [
+      "Pick a fun category, choose a picture, and set an easy piece count to get going. As kids get more confident they can step up to 108 pieces. Everything is free and safe to play on a tablet, phone or computer."
+    ],
+    "categoryKeys": ["dogs", "cats", "birds", "fish", "frogs", "horses"],
+    "faq": [
+      ["Are the kids' jigsaw puzzles free?", "Yes. Every kids' jigsaw puzzle on JigsawJam is free to play online - no account, no subscription and no download."],
+      ["What piece count is best for kids?", "Start at 12 pieces for younger children and move up to 48 or 108 pieces as they get more confident - you can change the number of pieces on any puzzle."],
+      ["Is it safe and free of downloads?", "Yes. Puzzles play directly in the browser with no app to install and no sign-up required."]
+    ]
+  },
+  "jigsaw-puzzles-for-seniors": {
+    "kind": "audience",
+    "difficulty": "medium",
+    "title": "Free Jigsaw Puzzles for Seniors - Easy Online Play | JigsawJam",
+    "h1": "Free Online Jigsaw Puzzles for Seniors",
+    "description": "Free online jigsaw puzzles for seniors - relaxing, easy-to-read puzzles you set from 12 to 300 pieces. No login, no app, no downloads. Play in your browser.",
+    "lead": "Free, relaxing online jigsaw puzzles for seniors - large, clear pictures you can play at a comfortable pace and set from 12 up to 300 pieces. No login, no app and no downloads, with simple drag-and-drop on desktop or tablet.",
+    "paras": [
+      "Choose a gentle piece count and enjoy calming categories like flowers, gardens, landscapes and birds. A new free Puzzle of the Day is featured every day if you would like a fresh one to look forward to."
+    ],
+    "categoryKeys": ["flowers", "landscapes", "beaches", "birds", "cats", "dogs"],
+    "faq": [
+      ["Are the jigsaw puzzles for seniors free?", "Yes. Every puzzle on JigsawJam is free to play online - no account, no subscription and no download."],
+      ["Can I make the puzzles easier?", "Yes. Set any puzzle to 12 or 48 pieces for a gentle, relaxing game, or step up to 108 or 300 pieces whenever you like."],
+      ["Do I have to sign up or install anything?", "No. Just open a puzzle in your browser and start - there is no login and nothing to download."]
+    ]
+  }
+}

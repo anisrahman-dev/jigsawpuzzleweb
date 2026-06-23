@@ -7,6 +7,8 @@ import { Footer } from '@/components/Footer'
 import { GalleryHome } from '@/components/GalleryHome'
 import { CategoriesPage } from '@/components/CategoriesPage'
 import { DailyPage } from '@/components/DailyPage'
+import { LandingPage } from '@/components/LandingPage'
+import { CustomPuzzlePage } from '@/components/CustomPuzzlePage'
 import { CategoryPage } from '@/components/CategoryPage'
 import { PuzzlePage } from '@/components/PuzzlePage'
 import { EventPage } from '@/components/EventPage'
@@ -22,6 +24,7 @@ export function App() {
   const selectedEvent = useUiStore((s) => s.selectedEvent)
   const categoryPage = useUiStore((s) => s.categoryPage)
   const puzzleRoute = useUiStore((s) => s.puzzleRoute)
+  const landingKey = useUiStore((s) => s.landingKey)
   const textSize = usePrefsStore((s) => s.textSize)
   const highContrast = usePrefsStore((s) => s.highContrast)
   const reduceMotion = usePrefsStore((s) => s.reduceMotion)
@@ -39,7 +42,7 @@ export function App() {
   useEffect(() => {
     const onPop = () => {
       const r = parseRoute()
-      useUiStore.getState().applyRoute(r.view, r.category, r.event, r.page, r.puzzle)
+      useUiStore.getState().applyRoute(r.view, r.category, r.event, r.page, r.puzzle, r.landing)
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
@@ -47,9 +50,9 @@ export function App() {
 
   // Store changes → URL (push a new history entry when it actually changes).
   useEffect(() => {
-    const url = urlForRoute(view, selectedCategory, selectedEvent, categoryPage, puzzleRoute)
+    const url = urlForRoute(view, selectedCategory, selectedEvent, categoryPage, puzzleRoute, landingKey)
     if (url !== currentUrl()) window.history.pushState(null, '', url)
-  }, [view, selectedCategory, selectedEvent, categoryPage, puzzleRoute])
+  }, [view, selectedCategory, selectedEvent, categoryPage, puzzleRoute, landingKey])
 
   // Always open a new page at the top: reset scroll on any navigation - a new
   // view, category, event, puzzle, or page of results - so nothing ever opens
@@ -59,7 +62,7 @@ export function App() {
     window.scrollTo(0, 0)
     document.documentElement.scrollTop = 0
     document.body.scrollTop = 0
-  }, [view, selectedCategory, selectedEvent, puzzleRoute, categoryPage])
+  }, [view, selectedCategory, selectedEvent, puzzleRoute, categoryPage, landingKey])
 
   return (
     <>
@@ -67,6 +70,8 @@ export function App() {
       <main className="app-main">
         {view === 'home' && <GalleryHome />}
         {view === 'daily' && <DailyPage />}
+        {view === 'custom' && <CustomPuzzlePage />}
+        {view === 'landing' && <LandingPage />}
         {view === 'categories' && <CategoriesPage />}
         {view === 'category' && <CategoryPage />}
         {view === 'puzzle' && <PuzzlePage />}
