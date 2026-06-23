@@ -101,7 +101,7 @@ export const CATEGORY_GROUPS: CategoryGroup[] = [
       n('other-nature', 'Other Nature', 'nature'),
       n('scenic', 'Scenic', 'scenic view'),
       n('seasons', 'Seasons', 'four seasons'),
-      n('sky', 'Sky', 'sky clouds blue sky'),
+      n('sky', 'Sky', 'sky clouds'),
       n('sunsets', 'Sunsets', 'sunset golden sky'),
       n('waterfalls', 'Waterfalls', 'waterfall'),
     ],
