@@ -6,6 +6,7 @@ import { ALL_CATEGORIES, categorySlug } from '@/data/categories'
 import { landingByKey } from '@/data/landings'
 import { useUiStore } from '@/store/uiStore'
 import { applyLandingHead } from './landingSeo'
+import { CategoryTiles } from './CategoryTiles'
 import './GalleryHome.css'
 
 export function LandingPage() {
@@ -44,6 +45,13 @@ export function LandingPage() {
             {p}
           </p>
         ))}
+
+        {cats.length > 0 && (
+          <CategoryTiles
+            items={cats}
+            onSelect={(node) => useUiStore.getState().browseCategory(node)}
+          />
+        )}
 
         <ul className="ghome-toplinks">
           {cats.map((c) => (
