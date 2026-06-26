@@ -562,6 +562,31 @@ async function buildLandings(template, labels, sitemap) {
         return `<li><a href="/${escAttr(categorySlug(label))}">${escHtml(label)} puzzles</a></li>`
       })
       .join('')
+
+    // Optional curated puzzle grid: public/catalog/<key>.json. When present,
+    // surface the real thumbnails (crawlable) and prerender each puzzle page,
+    // with breadcrumbs back to this landing rather than a category.
+    let images = []
+    try {
+      images = JSON.parse(await fs.readFile(path.join(CATALOG, `${key}.json`), 'utf8')).images || []
+    } catch {
+      /* no curated catalogue for this landing */
+    }
+    const gallery = images.length
+      ? `<section aria-label="Puzzles"><ul class="landing-gallery">` +
+        images
+          .map((im) => {
+            const name = subjectName(im.tags)
+            return (
+              `<li><a href="${escAttr(puzzlePath(key, im))}">` +
+              `<img src="${escAttr(im.thumb)}" width="${im.w}" height="${im.h}" loading="lazy" ` +
+              `alt="${escAttr(name)} - free online jigsaw puzzle" /></a></li>`
+            )
+          })
+          .join('') +
+        `</ul></section>`
+      : ''
+
     const paras = (l.paras || []).map((p) => `<p>${escHtml(p)}</p>`).join('')
     const faq = (l.faq || [])
       .map(([q, a]) => `<div class="faq-item"><h3>${escHtml(q)}</h3><p>${escHtml(a)}</p></div>`)
@@ -571,6 +596,7 @@ async function buildLandings(template, labels, sitemap) {
       `<h1>${escHtml(l.h1)}</h1>` +
       `<p>${escHtml(l.lead)}</p>` +
       paras +
+      gallery +
       `<ul>${catLinks}<li><a href="/categories">All categories</a></li></ul>` +
       `<section aria-labelledby="landing-faq"><h2 id="landing-faq">Frequently asked questions</h2>${faq}</section>` +
       `</main>`
@@ -609,6 +635,52 @@ async function buildLandings(template, labels, sitemap) {
     })
     await writePretty(`/${key}`, html)
     sitemap.push({ loc: abs(`/${key}`), priority: l.kind === 'custom' ? '0.8' : '0.7' })
+
+    // Prerender each curated puzzle page (breadcrumb → this landing).
+    if (images.length) {
+      if (PRERENDER_PUZZLES) {
+        await runBatched(images, 200, async (im) => {
+          const name = subjectName(im.tags)
+          const route = puzzlePath(key, im)
+          const pHtml = buildHtml(template, {
+            title: `${name} Jigsaw Puzzle - Free Online | ${SITE}`,
+            description: `Free ${name} jigsaw puzzle - play online with 12 to 300 pieces, no login.`,
+            canonicalPath: route,
+            prev: null,
+            next: null,
+            jsonld: [
+              breadcrumbLd([
+                { name: 'Home', path: '/' },
+                { name: l.h1, path: `/${key}` },
+                { name, path: route },
+              ]),
+              {
+                '@context': 'https://schema.org',
+                '@type': 'ImageObject',
+                name: `${name} Jigsaw Puzzle`,
+                contentUrl: im.url,
+                thumbnailUrl: im.thumb,
+                width: im.w,
+                height: im.h,
+                creditText: `${im.author} on Pixabay`,
+                creator: { '@type': 'Person', name: im.author },
+                isPartOf: { '@type': 'WebPage', url: abs(route) },
+              },
+            ],
+            body:
+              `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/${escAttr(key)}">${escHtml(l.h1)}</a> / <span>${escHtml(name)}</span></nav>` +
+              `<h1>${escHtml(name)} Jigsaw Puzzle</h1>` +
+              `<img src="${escAttr(im.url)}" width="${im.w}" height="${im.h}" alt="${escAttr(name)} - free online jigsaw puzzle photo" />` +
+              `<p>Photo by ${escHtml(im.author)} on Pixabay.</p>` +
+              `<p>Free ${escHtml(name)} jigsaw puzzle - play online with 12 to 300 pieces, no login.</p>` +
+              `<p><a href="${escAttr(route)}">Play this puzzle</a> · <a href="/${escAttr(key)}">${escHtml(l.h1)}</a></p>` +
+              `</main>`,
+          })
+          await writePretty(route, pHtml)
+        })
+      }
+      for (const im of images) sitemap.push({ loc: abs(puzzlePath(key, im)), priority: '0.6' })
+    }
   }
 }
 
@@ -619,15 +691,24 @@ async function main() {
   }
   const template = await fs.readFile(path.join(DIST, 'index.html'), 'utf8')
   const labels = await categoryLabels()
+  // Landing pages own catalogues named after their slug (e.g.
+  // jigsaw-puzzles-for-seniors.json). Those are curated puzzle grids for the
+  // landing, not browsable categories, so keep them out of category/sitemap
+  // enumeration (buildLandings handles the landing pages themselves).
+  const landingKeys = new Set(
+    Object.keys(JSON.parse(await fs.readFile(path.join(ROOT, 'src', 'data', 'landings.json'), 'utf8'))),
+  )
   // Skip runtime-only catalogues that aren't standalone categories:
-  // event-*.json (event pages) and daily*.json (Puzzle of the Day set).
+  // event-*.json (event pages), daily*.json (Puzzle of the Day set),
+  // home-*.json (home showcase) and landing-page catalogues.
   const files = (await fs.readdir(CATALOG)).filter(
     (f) =>
       f.endsWith('.json') &&
       f !== 'index.json' &&
       !f.startsWith('event-') &&
       !f.startsWith('daily') &&
-      !f.startsWith('home-'),
+      !f.startsWith('home-') &&
+      !landingKeys.has(f.replace(/\.json$/, '')),
   )
 
   const sitemap = [] // {loc, priority}

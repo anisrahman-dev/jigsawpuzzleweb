@@ -402,6 +402,10 @@
   font-size: 1.04rem;
   line-height: 1.6;
 }
+/* Curated puzzle grid on SEO landing pages. */
+.landing-puzzles {
+  margin: 0.5rem 0 0.5rem;
+}
 .ghome-inlink {
   border: none;
   background: none;

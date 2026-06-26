@@ -1,17 +1,22 @@
 // Generic SEO landing page (piece-count + audience pages). Content comes from
 // src/data/landings.json via the store's landingKey. Piece-count / audience
 // pages pre-select their difficulty preset so the next puzzle opens at it.
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ALL_CATEGORIES, categorySlug } from '@/data/categories'
 import { landingByKey } from '@/data/landings'
+import { loadCategoryCatalog, type GalleryPuzzle } from '@/data/gallery'
 import { useUiStore } from '@/store/uiStore'
 import { applyLandingHead } from './landingSeo'
 import { CategoryTiles } from './CategoryTiles'
+import { PuzzleCard } from './PuzzleCard'
 import './GalleryHome.css'
 
 export function LandingPage() {
   const landingKey = useUiStore((s) => s.landingKey)
   const landing = landingKey ? landingByKey(landingKey) : null
+  // Optional curated puzzle grid from public/catalog/<landingKey>.json. Pages
+  // without a catalogue file simply render no grid.
+  const [puzzles, setPuzzles] = useState<GalleryPuzzle[]>([])
 
   useEffect(() => {
     if (!landing) return
@@ -19,6 +24,20 @@ export function LandingPage() {
     if (landing.difficulty) useUiStore.getState().setDifficulty(landing.difficulty)
     return cleanup
   }, [landing])
+
+  useEffect(() => {
+    if (!landingKey) return
+    let cancelled = false
+    setPuzzles([])
+    loadCategoryCatalog(landingKey)
+      .then((list) => !cancelled && setPuzzles(list))
+      .catch(() => {
+        /* no curated catalogue for this landing - render no grid */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [landingKey])
 
   if (!landing) return null
 
@@ -45,6 +64,14 @@ export function LandingPage() {
             {p}
           </p>
         ))}
+
+        {puzzles.length > 0 && (
+          <div className="puzzle-grid landing-puzzles">
+            {puzzles.map((p) => (
+              <PuzzleCard key={p.id} puzzle={p} />
+            ))}
+          </div>
+        )}
 
         {cats.length > 0 && (
           <CategoryTiles
