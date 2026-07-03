@@ -679,7 +679,8 @@ async function buildLandings(template, labels, sitemap) {
           await writePretty(route, pHtml)
         })
       }
-      for (const im of images) sitemap.push({ loc: abs(puzzlePath(key, im)), priority: '0.6' })
+      // Curated landing puzzle pages stay live/crawlable but are kept out of the
+      // sitemap for the same crawl-budget reason as category puzzle pages above.
     }
   }
 }
@@ -761,7 +762,12 @@ async function main() {
       })
       puzCount += images.length
     }
-    for (const im of images) sitemap.push({ loc: abs(puzzlePath(key, im)), priority: '0.6' })
+    // NOTE: individual puzzle pages are intentionally NOT added to the sitemap.
+    // At ~30K near-identical thin pages, listing them all made Google defer the
+    // entire set as "Discovered - currently not indexed" (crawl-budget triage on
+    // a young domain). They stay live and crawlable via category internal links,
+    // so they index gradually as authority grows - while the sitemap points
+    // Google at the ~250 high-value pages (categories, landings, events, daily).
     process.stdout.write(`\r  ${catCount}/${files.length} categories, ${puzCount} puzzle pages…   `)
   }
   process.stdout.write('\n')
