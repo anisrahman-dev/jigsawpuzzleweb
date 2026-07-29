@@ -117,11 +117,12 @@ function prerenderWrap(body) {
   )
 }
 
-function buildHtml(template, { title, description, canonicalPath, prev, next, jsonld, body }) {
+function buildHtml(template, { title, description, canonicalPath, prev, next, jsonld, body, robots }) {
   const head = [
     `    <title>${escHtml(title)}</title>`,
     `    <meta name="description" content="${escAttr(description)}" />`,
     `    <link rel="canonical" href="${escAttr(abs(canonicalPath))}" />`,
+    robots ? `    <meta name="robots" content="${escAttr(robots)}" />` : '',
     prev ? `    <link rel="prev" href="${escAttr(abs(prev))}" />` : '',
     next ? `    <link rel="next" href="${escAttr(abs(next))}" />` : '',
     `    <meta property="og:title" content="${escAttr(title)}" />`,
@@ -385,6 +386,14 @@ const HOME_FAQ = [
   ['How many puzzles and categories are there?', 'JigsawJam has 32,850 puzzles organized into 73 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.'],
   ['What is the Puzzle of the Day?', 'A new featured puzzle is published every day. During seasonal events such as Halloween and Christmas, solving puzzles earns triple (3x) points while the event is running.'],
 ]
+// Routes the SPA owns that have no prerenderable content. They get a noindex
+// shell on disk purely so `cleanUrls` resolves them instead of 404ing - see the
+// SPA_ROUTES loop in main(). Keep in sync with parseRoute() in src/router.ts.
+const SPA_ROUTES = [
+  { path: '/play', title: 'Play a Jigsaw Puzzle', description: 'Play a free online jigsaw puzzle in your browser.' },
+  { path: '/search', title: 'Search Jigsaw Puzzles', description: 'Search free online jigsaw puzzles by keyword.' },
+]
+
 const HOME_TITLE = `Free Online Jigsaw Puzzles - No Login | ${SITE}`
 const HOME_DESC =
   'Free online jigsaw puzzles you play in your browser - no login, no downloads. 32,850 puzzles in 73 categories, 12 to 300 pieces. New puzzle daily.'
@@ -784,6 +793,28 @@ async function main() {
     body: categoriesBody(categoryIndex),
   })
   await writePretty('/categories', categoriesHtml)
+
+  // Client-only routes (/play, /search) have no prerenderable content, but they
+  // still need a real file on disk: with `cleanUrls` the host resolves an
+  // extensionless path against the filesystem, and a miss is a hard 404 rather
+  // than falling through to the SPA rewrite. Emit a noindex shell for each so a
+  // direct hit, refresh or shared link boots the app - while genuinely unknown
+  // URLs keep returning a true 404 instead of a soft-404 copy of the home page.
+  for (const r of SPA_ROUTES) {
+    await writePretty(
+      r.path,
+      buildHtml(template, {
+        title: `${r.title} | ${SITE}`,
+        description: r.description,
+        canonicalPath: r.path,
+        prev: null,
+        next: null,
+        robots: 'noindex,follow',
+        jsonld: [],
+        body: `<main><h1>${escHtml(r.title)}</h1><p>${escHtml(r.description)}</p></main>`,
+      }),
+    )
+  }
 
   // Prerender each event page (/event/<key>) - themed evergreen collections.
   const evNames = await eventNames()
