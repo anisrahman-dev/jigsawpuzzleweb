@@ -122,7 +122,7 @@ export function DailyPage() {
         <p className="ghome-about-lead">
           Want more than the daily puzzle? Browse{' '}
           <button type="button" className="ghome-inlink" onClick={() => useUiStore.getState().showCategories()}>
-            all 73 categories
+            all 74 categories
           </button>{' '}
           of free online jigsaw puzzles, or jump straight into a popular one:
         </p>

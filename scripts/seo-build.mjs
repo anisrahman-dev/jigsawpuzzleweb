@@ -381,9 +381,10 @@ const slugKeyByLabel = new Map()
 // ── main ───────────────────────────────────────────────────────────────────
 const HOME_FAQ = [
   ['Is JigsawJam free?', 'Yes. Every jigsaw puzzle on JigsawJam is free to play online. There is no account, no subscription, and no app or download required - you play directly in your web browser.'],
+  ['Are these jigsaw puzzles free online games with no download?', 'Yes - JigsawJam is jigsaw puzzles free online games no download required. Everything runs inside your web browser, so there is nothing to install on your phone, tablet or computer.'],
   ['Do I need an account or login to play?', 'No. You can start any puzzle straight away in your browser without signing up or logging in, on desktop or mobile.'],
   ['How many pieces can a puzzle have?', 'Every puzzle can be played from 12 pieces up to 300 pieces. Pick fewer pieces for a quick game or more for a longer, relaxing challenge.'],
-  ['How many puzzles and categories are there?', 'JigsawJam has 32,850 puzzles organized into 73 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.'],
+  ['How many puzzles and categories are there?', 'JigsawJam has 33,065 puzzles organized into 74 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.'],
   ['What is the Puzzle of the Day?', 'A new featured puzzle is published every day. During seasonal events such as Halloween and Christmas, solving puzzles earns triple (3x) points while the event is running.'],
 ]
 // Routes the SPA owns that have no prerenderable content. They get a noindex
@@ -394,9 +395,9 @@ const SPA_ROUTES = [
   { path: '/search', title: 'Search Jigsaw Puzzles', description: 'Search free online jigsaw puzzles by keyword.' },
 ]
 
-const HOME_TITLE = `Free Online Jigsaw Puzzles - No Login | ${SITE}`
+const HOME_TITLE = `Free Online Jigsaw Puzzles to Play - No Download | ${SITE}`
 const HOME_DESC =
-  'Free online jigsaw puzzles you play in your browser - no login, no downloads. 32,850 puzzles in 73 categories, 12 to 300 pieces. New puzzle daily.'
+  'Free online jigsaw puzzles to play in your browser - no login, no download. 33,065 jigsaw puzzles online free in 74 categories, 12 to 300 pieces.'
 
 /** Prerender the home page: full head (canonical, OG/Twitter, robots, @graph)
  *  + crawlable body so non-JS crawlers and AI engines see real content. */
@@ -467,8 +468,9 @@ async function buildHome(template, labels) {
     .join('')
   const body =
     `<main><h1>Free Online Jigsaw Puzzles</h1>` +
-    `<p>JigsawJam is a free online jigsaw puzzle site you play right in your browser - no login, no app, and no downloads. Choose from 32,850 puzzles across 73 categories, set any puzzle from 12 to 300 pieces, and play on desktop or mobile.</p>` +
-    `<p>A new <a href="/daily-jigsaw-puzzle">Puzzle of the Day</a> is featured every day, and during seasonal events such as Halloween, Christmas and the Summer Solstice your solves earn 3x points. Browse <a href="/categories">all 73 categories</a> or jump into a popular one:</p>` +
+    `<p>JigsawJam is a collection of free online jigsaw puzzles to play right in your browser - no login, no app, and no downloads. Choose from 33,065 puzzles across 74 categories, set any puzzle from 12 to 300 pieces, and play on desktop or mobile.</p>` +
+    `<p>Every picture here is free. These are jigsaw puzzles online free of charge, with no sign-up and nothing to install - free jigsaw puzzles online that you can start in one click and come back to any day.</p>` +
+    `<p>Prefer to simply play jigsaw online without hunting through menus? Open the <a href="/daily-jigsaw-puzzle">Puzzle of the Day</a> for a fresh jigsaw puzzle free online every morning, and during seasonal events such as Halloween, Christmas and the Summer Solstice your solves earn 3x points. Browse <a href="/categories">all 74 categories</a> or jump into a popular one:</p>` +
     `<ul>${catLinks}</ul>` +
     `<h2>More ways to play</h2>` +
     `<ul>` +
@@ -521,7 +523,7 @@ async function buildDaily(template, labels) {
     `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>Daily Jigsaw Puzzle</span></nav>` +
     `<h1>Daily Jigsaw Puzzle - Puzzle of the Day</h1>` +
     `<p>A brand-new Puzzle of the Day is featured every day on ${escHtml(SITE)} - free to play right in your browser with no login, no app and no downloads. Solve today's daily jigsaw puzzle from 12 to 300 pieces on desktop or mobile, then come back tomorrow for a fresh one.</p>` +
-    `<p>Want more than the daily puzzle? Browse <a href="/categories">all 73 categories</a> of free online jigsaw puzzles, or jump into a popular one:</p>` +
+    `<p>Want more than the daily puzzle? Browse <a href="/categories">all 74 categories</a> of free online jigsaw puzzles, or jump into a popular one:</p>` +
     `<ul>${catLinks}</ul>` +
     `<section aria-labelledby="daily-faq"><h2 id="daily-faq">Daily jigsaw puzzle - frequently asked questions</h2>${faq}</section>` +
     `</main>`

@@ -12,9 +12,9 @@ import { PuzzleCard } from './PuzzleCard'
 import { Icon } from '@/components/Icon'
 import './GalleryHome.css'
 
-const HOME_TITLE = 'Free Online Jigsaw Puzzles - No Login | JigsawJam'
+const HOME_TITLE = 'Free Online Jigsaw Puzzles to Play - No Download | JigsawJam'
 const HOME_DESC =
-  'Free online jigsaw puzzles you play in your browser - no login, no downloads. 32,850 puzzles in 73 categories, 12 to 300 pieces. New puzzle daily.'
+  'Free online jigsaw puzzles to play in your browser - no login, no download. 33,065 jigsaw puzzles online free in 74 categories, 12 to 300 pieces.'
 
 /** Top categories surfaced as text links + in the ItemList structured data. */
 const TOP_KEYS = ['dogs', 'cats', 'birds', 'flowers', 'beaches', 'landscapes', 'space', 'food', 'castles', 'trains']
@@ -30,6 +30,10 @@ const HOME_FAQ: { q: string; a: string }[] = [
     a: 'Yes. Every jigsaw puzzle on JigsawJam is free to play online. There is no account, no subscription, and no app or download required - you play directly in your web browser.',
   },
   {
+    q: 'Are these jigsaw puzzles free online games with no download?',
+    a: 'Yes - JigsawJam is jigsaw puzzles free online games no download required. Everything runs inside your web browser, so there is nothing to install on your phone, tablet or computer.',
+  },
+  {
     q: 'Do I need an account or login to play?',
     a: 'No. You can start any puzzle straight away in your browser without signing up or logging in, on desktop or mobile.',
   },
@@ -39,7 +43,7 @@ const HOME_FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'How many puzzles and categories are there?',
-    a: 'JigsawJam has 32,850 puzzles organized into 73 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.',
+    a: 'JigsawJam has 33,065 puzzles organized into 74 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.',
   },
   {
     q: 'What is the Puzzle of the Day?',
@@ -261,9 +265,17 @@ export function GalleryHome() {
           </div>
         </div>
         <p className="ghome-about-lead">
-          JigsawJam is a free online jigsaw puzzle site you play right in your browser - no
-          login, no app, and no downloads. Choose from 32,850 puzzles across 73 categories, set any
-          puzzle from 12 to 300 pieces, and play on desktop or mobile. A new{' '}
+          JigsawJam is a collection of free online jigsaw puzzles to play right in your browser -
+          no login, no app, and no downloads. Choose from 33,065 puzzles across 74 categories, set
+          any puzzle from 12 to 300 pieces, and play on desktop or mobile.
+        </p>
+        <p className="ghome-about-lead">
+          Every picture here is free. These are jigsaw puzzles online free of charge, with no
+          sign-up and nothing to install - free jigsaw puzzles online that you can start in one
+          click and come back to any day.
+        </p>
+        <p className="ghome-about-lead">
+          Prefer to simply play jigsaw online without hunting through menus? Open the{' '}
           <a
             href="/daily-jigsaw-puzzle"
             className="ghome-inlink"
@@ -274,7 +286,8 @@ export function GalleryHome() {
           >
             Puzzle of the Day
           </a>{' '}
-          is featured daily, and seasonal events earn 3× points.
+          for a fresh jigsaw puzzle free online every morning, or pick a category below. Seasonal
+          events earn 3× points while they run.
         </p>
         <ul className="ghome-toplinks">
           {TOP_CATEGORIES.map((c) => {
