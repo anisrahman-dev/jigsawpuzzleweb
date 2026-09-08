@@ -10,11 +10,8 @@ import { CategoryTiles } from './CategoryTiles'
 import { PuzzleOfTheDay } from './PuzzleOfTheDay'
 import { PuzzleCard } from './PuzzleCard'
 import { Icon } from '@/components/Icon'
+import { HOME_TITLE, HOME_DESC, HOME_FAQ, HOME_COUNTS } from '@/data/homeCopy.mjs'
 import './GalleryHome.css'
-
-const HOME_TITLE = 'Free Online Jigsaw Puzzles to Play - No Download | JigsawJam'
-const HOME_DESC =
-  'Free online jigsaw puzzles to play in your browser - no login, no download. 33,065 jigsaw puzzles online free in 74 categories, 12 to 300 pieces.'
 
 /** Top categories surfaced as text links + in the ItemList structured data. */
 const TOP_KEYS = ['dogs', 'cats', 'birds', 'flowers', 'beaches', 'landscapes', 'space', 'food', 'castles', 'trains']
@@ -23,33 +20,6 @@ const TOP_CATEGORIES = TOP_KEYS.map((k) => {
   const label = c?.label ?? k
   return { key: k, label, path: `/${categorySlug(label)}` }
 })
-
-const HOME_FAQ: { q: string; a: string }[] = [
-  {
-    q: 'Is JigsawJam free?',
-    a: 'Yes. Every jigsaw puzzle on JigsawJam is free to play online. There is no account, no subscription, and no app or download required - you play directly in your web browser.',
-  },
-  {
-    q: 'Are these jigsaw puzzles free online games with no download?',
-    a: 'Yes - JigsawJam is jigsaw puzzles free online games no download required. Everything runs inside your web browser, so there is nothing to install on your phone, tablet or computer.',
-  },
-  {
-    q: 'Do I need an account or login to play?',
-    a: 'No. You can start any puzzle straight away in your browser without signing up or logging in, on desktop or mobile.',
-  },
-  {
-    q: 'How many pieces can a puzzle have?',
-    a: 'Every puzzle can be played from 12 pieces up to 300 pieces. Pick fewer pieces for a quick game or more for a longer, relaxing challenge.',
-  },
-  {
-    q: 'How many puzzles and categories are there?',
-    a: 'JigsawJam has 33,065 puzzles organized into 74 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.',
-  },
-  {
-    q: 'What is the Puzzle of the Day?',
-    a: 'A new featured puzzle is published every day. During seasonal events such as Halloween and Christmas, solving puzzles earns triple (3x) points while the event is running.',
-  },
-]
 
 /** schema.org @graph for the home page (WebSite+SearchAction, Organization, WebPage, ItemList, FAQPage). */
 function homeGraph() {
@@ -266,8 +236,9 @@ export function GalleryHome() {
         </div>
         <p className="ghome-about-lead">
           JigsawJam is a collection of free online jigsaw puzzles to play right in your browser -
-          no login, no app, and no downloads. Choose from 33,065 puzzles across 74 categories, set
-          any puzzle from 12 to 300 pieces, and play on desktop or mobile.
+          no login, no app, and no downloads. Choose from {HOME_COUNTS.puzzles} puzzles across{' '}
+          {HOME_COUNTS.categories} categories, set any puzzle from 12 to 300 pieces, and play on
+          desktop or mobile.
         </p>
         <p className="ghome-about-lead">
           Every picture here is free. These are jigsaw puzzles online free of charge, with no

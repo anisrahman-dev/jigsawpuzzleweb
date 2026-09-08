@@ -4,6 +4,7 @@
 // on the home page) plus keyword-rich copy, an FAQ and internal links.
 import { useEffect } from 'react'
 import { ALL_CATEGORIES, categorySlug } from '@/data/categories'
+import { TOTALS } from '@/data/categoryFacts.mjs'
 import { useUiStore } from '@/store/uiStore'
 import { absUrl, setMeta, setCanonical, setJsonLd, removeJsonLd, resetHead } from '@/lib/seo'
 import { PuzzleOfTheDay } from './PuzzleOfTheDay'
@@ -122,7 +123,7 @@ export function DailyPage() {
         <p className="ghome-about-lead">
           Want more than the daily puzzle? Browse{' '}
           <button type="button" className="ghome-inlink" onClick={() => useUiStore.getState().showCategories()}>
-            all 74 categories
+            all {TOTALS.categories} categories
           </button>{' '}
           of free online jigsaw puzzles, or jump straight into a popular one:
         </p>

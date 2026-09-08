@@ -1,13 +1,16 @@
 // Dedicated page listing every category as a photo tile.
 import { useEffect } from 'react'
 import { ALL_CATEGORIES, categorySlug, type CategoryNode } from '@/data/categories'
+import { TOTALS } from '@/data/categoryFacts.mjs'
 import { useUiStore } from '@/store/uiStore'
 import { SITE, absUrl, setMeta, setCanonical, setJsonLd, removeJsonLd, resetHead } from '@/lib/seo'
 import { CategoryTiles } from './CategoryTiles'
 import { Icon } from '@/components/Icon'
 import './CategoriesPage.css'
 
-const COUNT = ALL_CATEGORIES.length
+// Count the categories that actually have a catalogue behind them, so the page
+// agrees with its own prerendered copy and with the sitemap.
+const COUNT = TOTALS.categories
 
 export function CategoriesPage() {
   const onSelect = (node: CategoryNode) => useUiStore.getState().browseCategory(node)

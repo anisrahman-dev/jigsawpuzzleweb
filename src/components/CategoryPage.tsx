@@ -1,6 +1,6 @@
 // A single category's page: "<Category> Online Free Jigsaw Puzzles" + intro
 // description + a grid of that category's puzzles (live Pixabay search).
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   GALLERY_PUZZLES,
   loadCategoryCatalog,
@@ -9,6 +9,8 @@ import {
 } from '@/data/gallery'
 import { PixabayError } from '@/api/pixabay'
 import { categorySlug } from '@/data/categories'
+import { categoryCopy } from '@/data/categoryCopy.mjs'
+import { CATEGORY_FACTS } from '@/data/categoryFacts.mjs'
 import { urlForRoute, puzzleSlug } from '@/router'
 import {
   SITE,
@@ -28,25 +30,6 @@ import './CategoryPage.css'
 
 const PAGE_SIZE = 24
 
-/** Short, category-aware Q&A - visible on the page AND emitted as FAQPage JSON-LD. */
-function faqFor(label: string): { q: string; a: string }[] {
-  const l = label.toLowerCase()
-  return [
-    {
-      q: `Are the ${l} jigsaw puzzles free?`,
-      a: `Yes. Every ${l} jigsaw puzzle on ${SITE} is free to play online - no login, no app, and no downloads.`,
-    },
-    {
-      q: `How many pieces can I choose?`,
-      a: `Each ${l} puzzle can be played from 12 pieces up to 300 pieces, so it suits a quick break or a longer, relaxing session.`,
-    },
-    {
-      q: `Do I need an account to play ${l} puzzles?`,
-      a: `No account is needed. Pick any ${l} picture and start solving instantly in your browser, on desktop or mobile.`,
-    },
-  ]
-}
-
 /** Page numbers to show, with '…' gaps for long ranges (e.g. 1 … 6 7 [8] 9 10 … 19). */
 function pageWindow(current: number, total: number): (number | '…')[] {
   const out: (number | '…')[] = []
@@ -65,16 +48,6 @@ function pageTitle(label: string): string {
   return `${label} Online Free Jigsaw Puzzles`
 }
 
-function describe(label: string): string {
-  const l = label.toLowerCase()
-  return (
-    `Play free online ${l} jigsaw puzzles - no login, no downloads, ever. ` +
-    `Browse a fresh collection of ${l} pictures below, pick the one you like, then choose ` +
-    `anywhere from a quick 12-piece puzzle to a challenging 300-piece one. Drag the pieces, ` +
-    `watch them snap together, and relax at your own pace.`
-  )
-}
-
 export function CategoryPage() {
   const node = useUiStore((s) => s.selectedCategory)
   const [results, setResults] = useState<GalleryPuzzle[] | null>(null)
@@ -83,6 +56,14 @@ export function CategoryPage() {
   const page = useUiStore((s) => s.categoryPage)
 
   const label = node?.label ?? 'Jigsaw'
+  // Intro copy, FAQ and meta description come from the module the prerender
+  // step also uses, so the static HTML and the hydrated page never disagree.
+  // Memoised: the SEO effect depends on it and it must not change identity
+  // on every render.
+  const copy = useMemo(
+    () => categoryCopy(node?.key ?? '', label, CATEGORY_FACTS[node?.key ?? '']),
+    [node?.key, label],
+  )
 
   // Fetch this category's puzzles.
   useEffect(() => {
@@ -112,7 +93,6 @@ export function CategoryPage() {
   // count and the item list reflect real puzzles.
   useEffect(() => {
     if (!node) return
-    const l = label.toLowerCase()
     const count = results?.length ?? 0
     const totalPages = Math.max(1, Math.ceil((count || PAGE_SIZE) / PAGE_SIZE))
     const current = Math.min(page, totalPages)
@@ -120,12 +100,7 @@ export function CategoryPage() {
 
     const pageSuffix = current > 1 ? ` (Page ${current})` : ''
     document.title = `${pageTitle(label)}${pageSuffix} | ${SITE}`
-    const countWord = count > 0 ? `${count}` : 'hundreds of'
-    setMeta(
-      'description',
-      `Play free online ${l} jigsaw puzzles - browse ${countWord} hand-picked ${l} ` +
-        `pictures and solve any of them in 12 to 300 pieces. No login, no downloads.`,
-    )
+    setMeta('description', copy.description)
 
     // Self-referencing canonical + prev/next so paginated pages aren't seen as duplicates.
     setCanonical(path)
@@ -171,7 +146,7 @@ export function CategoryPage() {
     setJsonLd('ld-faq', {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
-      mainEntity: faqFor(label).map((f) => ({
+      mainEntity: copy.faq.map((f) => ({
         '@type': 'Question',
         name: f.q,
         acceptedAnswer: { '@type': 'Answer', text: f.a },
@@ -182,7 +157,7 @@ export function CategoryPage() {
       resetHead()
       removeJsonLd('ld-breadcrumb', 'ld-collection', 'ld-faq')
     }
-  }, [node, label, page, results])
+  }, [node, label, page, results, copy])
 
   if (!node) {
     return (
@@ -219,7 +194,12 @@ export function CategoryPage() {
 
       <header className="catpg-head">
         <h1 className="catpg-title">{pageTitle(label)}</h1>
-        <p className="catpg-desc">{describe(label)}</p>
+        <p className="catpg-desc">{copy.lead}</p>
+        {copy.paras.map((para) => (
+          <p className="catpg-desc" key={para}>
+            {para}
+          </p>
+        ))}
         {!loading && results && results.length > 0 ? (
           <p className="catpg-count">
             <strong>{results.length}</strong> free {label.toLowerCase()} puzzles · play any from 12
@@ -316,7 +296,7 @@ export function CategoryPage() {
           {label} jigsaw puzzles - frequently asked questions
         </h2>
         <dl className="catpg-faq-list">
-          {faqFor(label).map((f) => (
+          {copy.faq.map((f) => (
             <div className="catpg-faq-item" key={f.q}>
               <dt>{f.q}</dt>
               <dd>{f.a}</dd>

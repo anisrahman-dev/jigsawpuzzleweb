@@ -4,41 +4,29 @@
 import { useEffect, useState } from 'react'
 import { ALL_CATEGORIES } from '@/data/categories'
 import { findPuzzle, type GalleryPuzzle } from '@/data/gallery'
-import { setCanonical } from '@/lib/seo'
+import { puzzleDescription } from '@/data/puzzleTitles.mjs'
+import { SITE, setCanonical, setMeta, resetHead } from '@/lib/seo'
 import { useUiStore } from '@/store/uiStore'
 import { DifficultyPicker } from './DifficultyPicker'
 import { Spinner } from './Spinner'
 import { Icon } from '@/components/Icon'
 import './PuzzlePage.css'
 
-const SITE = 'JigsawJam'
-const DEFAULT_DESC =
-  'Play free online jigsaw puzzles - no login required. Choose any image, pick your difficulty, and start solving.'
-
-/** Distinct descriptive tags from the image, skipping ones already in `name`. */
-function extraTags(tags: string | undefined, name: string, limit: number): string[] {
-  const seen = name.toLowerCase()
-  const out: string[] = []
-  for (const raw of (tags ?? '').split(',')) {
-    const t = raw.trim()
-    if (!t || seen.includes(t.toLowerCase()) || out.some((o) => o.toLowerCase() === t.toLowerCase()))
-      continue
-    out.push(t.replace(/\b\w/g, (m) => m.toUpperCase()))
-    if (out.length >= limit) break
-  }
-  return out
-}
-
-/** Add or update a <meta name="..."> tag in the document head. */
-function setMeta(name: string, content: string): void {
-  let el = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)
-  if (!el) {
-    el = document.createElement('meta')
-    el.setAttribute('name', name)
-    document.head.appendChild(el)
-  }
-  el.setAttribute('content', content)
-}
+// The canonical the server sent for the URL we actually landed on. A photo can
+// belong to several categories, and the prerendered page already points at the
+// single canonical copy - so on the entry page we keep that rather than
+// clobbering it with a self-reference. Read at module load, before any effect
+// touches <head>. (Client-side navigation self-references, which is right: no
+// crawler ever sees those.)
+const ENTRY =
+  typeof window === 'undefined'
+    ? null
+    : {
+        path: window.location.pathname,
+        canonical:
+          document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.getAttribute('href') ??
+          null,
+      }
 
 export function PuzzlePage() {
   const puzzle = useUiStore((s) => s.detailPuzzle)
@@ -79,21 +67,14 @@ export function PuzzlePage() {
     }
     const catBit = categoryNode ? ` ${categoryNode.label}` : ''
     document.title = `${heading} - Free${catBit} Puzzle Online | ${SITE}`
-    // Lead with the unique bits (subject + this image's own tags) so the part
-    // that differs across pages survives Google's ~160-char snippet cut.
-    const tags = extraTags(puzzle.tags, name, 2)
-    const feature = tags.length ? ` featuring ${tags.join(' and ').toLowerCase()}` : ''
-    setMeta(
-      'description',
-      `Free ${name} jigsaw puzzle${feature} - play online with 12 to 300 pieces, no login.`,
-    )
+    setMeta('description', puzzleDescription(name, puzzle.tags, puzzle.author))
     // Self-referencing canonical so client-side navigation to a puzzle doesn't
     // leave the previous page's canonical in the head.
-    if (route) setCanonical(`/puzzle/${route.category}/${route.id}/${route.slug}`)
-    return () => {
-      document.title = `${SITE} - Free Online Jigsaw Puzzles`
-      setMeta('description', DEFAULT_DESC)
+    if (route) {
+      const path = `/puzzle/${route.category}/${route.id}/${route.slug}`
+      setCanonical(ENTRY?.path === path && ENTRY.canonical ? ENTRY.canonical : path)
     }
+    return resetHead
   }, [puzzle, name, categoryNode, heading, route])
 
   if (notFound) {

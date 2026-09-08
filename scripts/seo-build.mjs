@@ -10,6 +10,12 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+// Copy + naming shared with the React app so the prerendered HTML and the
+// hydrated page are never two different pages in Google's eyes.
+import { slugName, displayNames, puzzleDescription } from '../src/data/puzzleTitles.mjs'
+import { categoryCopy } from '../src/data/categoryCopy.mjs'
+import { CATEGORY_FACTS } from '../src/data/categoryFacts.mjs'
+import { HOME_TITLE, HOME_DESC, HOME_FAQ, HOME_COUNTS } from '../src/data/homeCopy.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const DIST = path.join(ROOT, 'dist')
@@ -22,6 +28,12 @@ const DEFAULT_DOMAIN = 'https://www.jigsawjam.com'
 const OG_IMAGE = '/logo.png' // 512x512 brand logo used for social previews
 const SITE_URL = (process.env.SITE_URL || DEFAULT_DOMAIN).replace(/\/+$/, '')
 const PRERENDER_PUZZLES = process.env.PRERENDER_PUZZLES !== '0'
+// NOINDEX_PUZZLES=1 keeps the ~33k puzzle pages live and linkable but tells
+// Google not to index them. The lever to pull if Search Console shows them
+// soaking up crawl budget instead of the ~130 pages that actually matter.
+const NOINDEX_PUZZLES = process.env.NOINDEX_PUZZLES === '1'
+/** Robots directive for pages we want fully indexed with big image previews. */
+const RICH_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1'
 
 // ── helpers ──────────────────────────────────────────────────────────────
 const escAttr = (s) =>
@@ -45,41 +57,13 @@ const puzzleSlug = (title, author) => {
   return a ? `${t}-by-${a}` : t
 }
 const titleCase = (s) => s.replace(/\b\w/g, (m) => m.toUpperCase())
-const subjectName = (tags) => titleCase((tags?.split(',')[0] ?? 'Puzzle').trim())
 const abs = (p) => SITE_URL + p
+// URL slugs stay built from the bare first tag, exactly as they always have
+// been. Display names are now distinct per puzzle, but the URLs must not move
+// or every page Google has already crawled turns into a 404.
 const puzzlePath = (catKey, im) =>
-  `/puzzle/${catKey}/${im.id}/${puzzleSlug(subjectName(im.tags), im.author)}`
+  `/puzzle/${catKey}/${im.id}/${puzzleSlug(slugName(im.tags), im.author)}`
 
-function extraTags(tags, name, limit) {
-  const seen = name.toLowerCase()
-  const out = []
-  for (const raw of (tags ?? '').split(',')) {
-    const t = raw.trim()
-    if (!t || seen.includes(t.toLowerCase()) || out.some((o) => o.toLowerCase() === t.toLowerCase()))
-      continue
-    out.push(titleCase(t))
-    if (out.length >= limit) break
-  }
-  return out
-}
-
-function faqFor(label) {
-  const l = label.toLowerCase()
-  return [
-    {
-      q: `Are the ${l} jigsaw puzzles free?`,
-      a: `Yes. Every ${l} jigsaw puzzle on ${SITE} is free to play online - no login, no app, and no downloads.`,
-    },
-    {
-      q: `How many pieces can I choose?`,
-      a: `Each ${l} puzzle can be played from 12 pieces up to 300 pieces, so it suits a quick break or a longer, relaxing session.`,
-    },
-    {
-      q: `Do I need an account to play ${l} puzzles?`,
-      a: `No account is needed. Pick any ${l} picture and start solving instantly in your browser, on desktop or mobile.`,
-    },
-  ]
-}
 
 // Parse key -> label from src/data/categories.ts (n('key','label','query') + standalone groups).
 async function categoryLabels() {
@@ -106,15 +90,43 @@ async function eventNames() {
 }
 
 // ── HTML assembly ──────────────────────────────────────────────────────────
-// Wrap the prerendered SEO body so it stays in the DOM for crawlers but is
-// visually hidden (off-screen) - this avoids the brief flash of unstyled
-// fallback markup before React mounts and replaces #root.
+// The prerendered body is REAL, VISIBLE content. It used to sit inside a
+// clip:rect(0,0,0,0) box to hide the flash of unstyled markup before React
+// mounts - but that meant serving CSS-hidden text to precisely the crawlers
+// this whole step exists to serve, and Google discounts hidden text. It is now
+// styled just enough to read as a plain page for the moment before React
+// replaces #root (which also disposes of this <style>).
+const PRERENDER_CSS = [
+  '[data-prerender]{max-width:1100px;margin:0 auto;padding:24px 20px;line-height:1.6;color:#1f2328;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}',
+  '[data-prerender] h1{font-size:1.9rem;line-height:1.2;margin:.4em 0}',
+  '[data-prerender] h2{font-size:1.3rem;margin:1.4em 0 .4em}',
+  '[data-prerender] h3{font-size:1rem;margin:1em 0 .2em}',
+  '[data-prerender] a{color:#1f63c4}',
+  '[data-prerender] nav{font-size:.9rem;color:#5b6470;margin-bottom:.6em}',
+  '[data-prerender] ul.grid,[data-prerender] ul.landing-gallery{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}',
+  '[data-prerender] ul.grid img,[data-prerender] ul.landing-gallery img{width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:10px;display:block}',
+  '[data-prerender] ul.grid a{display:block;text-decoration:none}',
+  '[data-prerender] ul.grid span{display:block;font-size:.9rem;margin-top:.35em}',
+  '[data-prerender] .all-index{display:block;margin:1.6em 0;font-size:.82rem;line-height:1.9;color:#5b6470}',
+  '[data-prerender] .all-index a{color:#5b6470}',
+  '[data-prerender] > main > img{max-width:100%;height:auto;border-radius:12px}',
+].join('')
+
+// Escape hatch: HIDE_PRERENDER=1 restores the old off-screen wrapper. Visible
+// markup is replaced when React mounts, which can register as a layout shift -
+// so if the Core Web Vitals report shows CLS regressing, flip this back on and
+// accept the weaker crawler signal instead.
+const HIDE_PRERENDER = process.env.HIDE_PRERENDER === '1'
+
 function prerenderWrap(body) {
-  return (
-    `<div data-prerender style="position:absolute;width:1px;height:1px;` +
-    `padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">` +
-    `${body}</div>`
-  )
+  if (HIDE_PRERENDER) {
+    return (
+      `<div data-prerender style="position:absolute;width:1px;height:1px;` +
+      `padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">` +
+      `${body}</div>`
+    )
+  }
+  return `<style>${PRERENDER_CSS}</style><div data-prerender>${body}</div>`
 }
 
 function buildHtml(template, { title, description, canonicalPath, prev, next, jsonld, body, robots }) {
@@ -159,26 +171,28 @@ function breadcrumbLd(items) {
   }
 }
 
-function categoryBody(label, slug, images) {
+function categoryBody(key, label, images, names, copy) {
   const l = escHtml(label.toLowerCase())
   const cards = images
     .slice(0, PAGE_SIZE)
-    .map((im) => {
-      const name = subjectName(im.tags)
-      return `<li><a href="${escAttr(puzzlePath(slugKeyByLabel.get(label), im))}"><img src="${escAttr(im.thumb)}" width="${im.w}" height="${im.h}" alt="${escAttr(name)} jigsaw puzzle" loading="lazy" /><span>${escHtml(name)} Jigsaw Puzzle</span></a></li>`
-    })
+    .map(
+      (im, i) =>
+        `<li><a href="${escAttr(puzzlePath(key, im))}"><img src="${escAttr(im.thumb)}" width="${im.w}" height="${im.h}" alt="${escAttr(names[i])} jigsaw puzzle" loading="lazy" /><span>${escHtml(names[i])} Jigsaw Puzzle</span></a></li>`,
+    )
     .join('')
   // A flat link index of every puzzle in the category (internal-link depth for crawlers).
   const allLinks = images
-    .map((im) => `<a href="${escAttr(puzzlePath(slugKeyByLabel.get(label), im))}">${escHtml(subjectName(im.tags))}</a>`)
+    .map((im, i) => `<a href="${escAttr(puzzlePath(key, im))}">${escHtml(names[i])}</a>`)
     .join(' · ')
-  const faq = faqFor(label)
+  const paras = copy.paras.map((t) => `<p>${escHtml(t)}</p>`).join('')
+  const faq = copy.faq
     .map((f) => `<div class="faq-item"><h3>${escHtml(f.q)}</h3><p>${escHtml(f.a)}</p></div>`)
     .join('')
   return (
     `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/categories">Categories</a> / <span>${escHtml(label)}</span></nav>` +
     `<h1>${escHtml(label)} Online Free Jigsaw Puzzles</h1>` +
-    `<p>Play free online ${l} jigsaw puzzles - no login, no downloads, ever. Browse ${images.length} hand-picked ${l} pictures and solve any of them from 12 to 300 pieces.</p>` +
+    `<p>${escHtml(copy.lead)}</p>` +
+    paras +
     `<p><strong>${images.length}</strong> free ${l} puzzles · play any from 12 to 300 pieces.</p>` +
     `<ul class="grid">${cards}</ul>` +
     `<section aria-label="All ${escHtml(label)} puzzles" class="all-index">${allLinks}</section>` +
@@ -187,14 +201,14 @@ function categoryBody(label, slug, images) {
   )
 }
 
-function categoryJsonLd(label, slug, images) {
+function categoryJsonLd(key, label, slug, images, names, copy) {
   const url = `/${slug}`
   const items = images.slice(0, PAGE_SIZE).map((im, i) => ({
     '@type': 'ListItem',
     position: i + 1,
-    name: `${subjectName(im.tags)} Jigsaw Puzzle`,
+    name: `${names[i]} Jigsaw Puzzle`,
     image: im.thumb,
-    url: abs(puzzlePath(slugKeyByLabel.get(label), im)),
+    url: abs(puzzlePath(key, im)),
   }))
   return [
     breadcrumbLd([
@@ -213,7 +227,7 @@ function categoryJsonLd(label, slug, images) {
     {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
-      mainEntity: faqFor(label).map((f) => ({
+      mainEntity: copy.faq.map((f) => ({
         '@type': 'Question',
         name: f.q,
         acceptedAnswer: { '@type': 'Answer', text: f.a },
@@ -275,14 +289,14 @@ function categoriesJsonLd(index) {
 }
 
 // ── Event pages (/event/<key>) ───────────────────────────────────────────────
-function eventBody(name, images) {
+function eventBody(name, images, names) {
   const title = `${name} Jigsaw Puzzles`
   const tiles = images
     .slice(0, PAGE_SIZE)
-    .map((im) => {
-      const subj = subjectName(im.tags)
-      return `<li><img src="${escAttr(im.thumb)}" width="${im.w}" height="${im.h}" alt="${escAttr(subj)} ${escHtml(name.toLowerCase())} jigsaw puzzle" loading="lazy" /><span>${escHtml(subj)}</span></li>`
-    })
+    .map(
+      (im, i) =>
+        `<li><img src="${escAttr(im.thumb)}" width="${im.w}" height="${im.h}" alt="${escAttr(names[i])} ${escHtml(name.toLowerCase())} jigsaw puzzle" loading="lazy" /><span>${escHtml(names[i])}</span></li>`,
+    )
     .join('')
   return (
     `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>${escHtml(title)}</span></nav>` +
@@ -294,7 +308,7 @@ function eventBody(name, images) {
   )
 }
 
-function eventJsonLd(name, key, images) {
+function eventJsonLd(name, key, images, names) {
   const url = `/event/${key}`
   return [
     breadcrumbLd([
@@ -313,7 +327,7 @@ function eventJsonLd(name, key, images) {
         itemListElement: images.slice(0, PAGE_SIZE).map((im, i) => ({
           '@type': 'ListItem',
           position: i + 1,
-          name: `${subjectName(im.tags)} Jigsaw Puzzle`,
+          name: `${names[i]} Jigsaw Puzzle`,
           image: im.thumb,
         })),
       },
@@ -321,24 +335,20 @@ function eventJsonLd(name, key, images) {
   ]
 }
 
-function puzzleBody(label, catKey, im) {
-  const name = subjectName(im.tags)
-  const tags = extraTags(im.tags, name, 2)
-  const feature = tags.length ? ` featuring ${tags.join(' and ').toLowerCase()}` : ''
+function puzzleBody(label, catKey, im, name) {
   return (
     `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/${categorySlug(label)}">${escHtml(label)}</a> / <span>${escHtml(name)}</span></nav>` +
     `<h1>${escHtml(name)} Jigsaw Puzzle</h1>` +
     `<img src="${escAttr(im.url)}" width="${im.w}" height="${im.h}" alt="${escAttr(name)} - free online jigsaw puzzle photo" />` +
     `<p>Photo by ${escHtml(im.author)} on Pixabay.</p>` +
-    `<p>Free ${escHtml(name)} jigsaw puzzle${escHtml(feature)} - play online with 12 to 300 pieces, no login.</p>` +
+    `<p>${escHtml(puzzleDescription(name, im.tags, im.author))}</p>` +
     `<p><a href="${escAttr(puzzlePath(catKey, im))}">Play this puzzle</a> · <a href="/${categorySlug(label)}">More ${escHtml(label)} puzzles</a></p>` +
     `</main>`
   )
 }
 
-function puzzleJsonLd(label, catKey, im) {
-  const name = subjectName(im.tags)
-  const url = puzzlePath(catKey, im)
+function puzzleJsonLd(label, catKey, im, name, canonical) {
+  const url = canonical ?? puzzlePath(catKey, im)
   return [
     breadcrumbLd([
       { name: 'Home', path: '/' },
@@ -371,22 +381,11 @@ async function writePretty(routePath, html) {
 
 async function runBatched(items, size, fn) {
   for (let i = 0; i < items.length; i += size) {
-    await Promise.all(items.slice(i, i + size).map(fn))
+    await Promise.all(items.slice(i, i + size).map((item, k) => fn(item, i + k)))
   }
 }
 
-// Resolve label -> category key for URL building inside body builders.
-const slugKeyByLabel = new Map()
-
 // ── main ───────────────────────────────────────────────────────────────────
-const HOME_FAQ = [
-  ['Is JigsawJam free?', 'Yes. Every jigsaw puzzle on JigsawJam is free to play online. There is no account, no subscription, and no app or download required - you play directly in your web browser.'],
-  ['Are these jigsaw puzzles free online games with no download?', 'Yes - JigsawJam is jigsaw puzzles free online games no download required. Everything runs inside your web browser, so there is nothing to install on your phone, tablet or computer.'],
-  ['Do I need an account or login to play?', 'No. You can start any puzzle straight away in your browser without signing up or logging in, on desktop or mobile.'],
-  ['How many pieces can a puzzle have?', 'Every puzzle can be played from 12 pieces up to 300 pieces. Pick fewer pieces for a quick game or more for a longer, relaxing challenge.'],
-  ['How many puzzles and categories are there?', 'JigsawJam has 33,065 puzzles organized into 74 categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.'],
-  ['What is the Puzzle of the Day?', 'A new featured puzzle is published every day. During seasonal events such as Halloween and Christmas, solving puzzles earns triple (3x) points while the event is running.'],
-]
 // Routes the SPA owns that have no prerenderable content. They get a noindex
 // shell on disk purely so `cleanUrls` resolves them instead of 404ing - see the
 // SPA_ROUTES loop in main(). Keep in sync with parseRoute() in src/router.ts.
@@ -394,10 +393,6 @@ const SPA_ROUTES = [
   { path: '/play', title: 'Play a Jigsaw Puzzle', description: 'Play a free online jigsaw puzzle in your browser.' },
   { path: '/search', title: 'Search Jigsaw Puzzles', description: 'Search free online jigsaw puzzles by keyword.' },
 ]
-
-const HOME_TITLE = `Free Online Jigsaw Puzzles to Play - No Download | ${SITE}`
-const HOME_DESC =
-  'Free online jigsaw puzzles to play in your browser - no login, no download. 33,065 jigsaw puzzles online free in 74 categories, 12 to 300 pieces.'
 
 /** Prerender the home page: full head (canonical, OG/Twitter, robots, @graph)
  *  + crawlable body so non-JS crawlers and AI engines see real content. */
@@ -436,7 +431,7 @@ async function buildHome(template, labels) {
       },
       {
         '@type': 'FAQPage', '@id': abs('/#faq'),
-        mainEntity: HOME_FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
+        mainEntity: HOME_FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
       },
     ],
   }
@@ -464,13 +459,13 @@ async function buildHome(template, labels) {
     .map((c) => `<li><a href="${escAttr(c.path)}">${escHtml(c.label)} puzzles</a></li>`)
     .join('')
   const faq = HOME_FAQ
-    .map(([q, a]) => `<div class="faq-item"><h3>${escHtml(q)}</h3><p>${escHtml(a)}</p></div>`)
+    .map((f) => `<div class="faq-item"><h3>${escHtml(f.q)}</h3><p>${escHtml(f.a)}</p></div>`)
     .join('')
   const body =
     `<main><h1>Free Online Jigsaw Puzzles</h1>` +
-    `<p>JigsawJam is a collection of free online jigsaw puzzles to play right in your browser - no login, no app, and no downloads. Choose from 33,065 puzzles across 74 categories, set any puzzle from 12 to 300 pieces, and play on desktop or mobile.</p>` +
+    `<p>JigsawJam is a collection of free online jigsaw puzzles to play right in your browser - no login, no app, and no downloads. Choose from ${HOME_COUNTS.puzzles} puzzles across ${HOME_COUNTS.categories} categories, set any puzzle from 12 to 300 pieces, and play on desktop or mobile.</p>` +
     `<p>Every picture here is free. These are jigsaw puzzles online free of charge, with no sign-up and nothing to install - free jigsaw puzzles online that you can start in one click and come back to any day.</p>` +
-    `<p>Prefer to simply play jigsaw online without hunting through menus? Open the <a href="/daily-jigsaw-puzzle">Puzzle of the Day</a> for a fresh jigsaw puzzle free online every morning, and during seasonal events such as Halloween, Christmas and the Summer Solstice your solves earn 3x points. Browse <a href="/categories">all 74 categories</a> or jump into a popular one:</p>` +
+    `<p>Prefer to simply play jigsaw online without hunting through menus? Open the <a href="/daily-jigsaw-puzzle">Puzzle of the Day</a> for a fresh jigsaw puzzle free online every morning, and during seasonal events such as Halloween, Christmas and the Summer Solstice your solves earn 3x points. Browse <a href="/categories">all ${HOME_COUNTS.categories} categories</a> or jump into a popular one:</p>` +
     `<ul>${catLinks}</ul>` +
     `<h2>More ways to play</h2>` +
     `<ul>` +
@@ -523,7 +518,7 @@ async function buildDaily(template, labels) {
     `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>Daily Jigsaw Puzzle</span></nav>` +
     `<h1>Daily Jigsaw Puzzle - Puzzle of the Day</h1>` +
     `<p>A brand-new Puzzle of the Day is featured every day on ${escHtml(SITE)} - free to play right in your browser with no login, no app and no downloads. Solve today's daily jigsaw puzzle from 12 to 300 pieces on desktop or mobile, then come back tomorrow for a fresh one.</p>` +
-    `<p>Want more than the daily puzzle? Browse <a href="/categories">all 74 categories</a> of free online jigsaw puzzles, or jump into a popular one:</p>` +
+    `<p>Want more than the daily puzzle? Browse <a href="/categories">all ${HOME_COUNTS.categories} categories</a> of free online jigsaw puzzles, or jump into a popular one:</p>` +
     `<ul>${catLinks}</ul>` +
     `<section aria-labelledby="daily-faq"><h2 id="daily-faq">Daily jigsaw puzzle - frequently asked questions</h2>${faq}</section>` +
     `</main>`
@@ -556,6 +551,7 @@ async function buildDaily(template, labels) {
     canonicalPath: DAILY_PATH,
     prev: null,
     next: null,
+    robots: RICH_ROBOTS,
     jsonld,
     body,
   })
@@ -564,7 +560,7 @@ async function buildDaily(template, labels) {
 
 // ── SEO landing pages (custom maker, piece-count, audience) ─────────────────
 // Driven by src/data/landings.json - the same file the React app imports.
-async function buildLandings(template, labels, sitemap) {
+async function buildLandings(template, labels, sitemap, ownerOf) {
   const raw = JSON.parse(await fs.readFile(path.join(ROOT, 'src', 'data', 'landings.json'), 'utf8'))
   for (const [key, l] of Object.entries(raw)) {
     const catLinks = (l.categoryKeys || [])
@@ -583,11 +579,12 @@ async function buildLandings(template, labels, sitemap) {
     } catch {
       /* no curated catalogue for this landing */
     }
+    const names = displayNames(images)
     const gallery = images.length
       ? `<section aria-label="Puzzles"><ul class="landing-gallery">` +
         images
-          .map((im) => {
-            const name = subjectName(im.tags)
+          .map((im, i) => {
+            const name = names[i]
             return (
               `<li><a href="${escAttr(puzzlePath(key, im))}">` +
               `<img src="${escAttr(im.thumb)}" width="${im.w}" height="${im.h}" loading="lazy" ` +
@@ -641,6 +638,7 @@ async function buildLandings(template, labels, sitemap) {
       canonicalPath: `/${key}`,
       prev: null,
       next: null,
+      robots: RICH_ROBOTS,
       jsonld,
       body,
     })
@@ -650,15 +648,21 @@ async function buildLandings(template, labels, sitemap) {
     // Prerender each curated puzzle page (breadcrumb → this landing).
     if (images.length) {
       if (PRERENDER_PUZZLES) {
-        await runBatched(images, 200, async (im) => {
-          const name = subjectName(im.tags)
+        await runBatched(images, 200, async (im, i) => {
+          const name = names[i]
           const route = puzzlePath(key, im)
+          // Curated landing photos are usually also in a category - canonicalise
+          // onto that copy rather than publishing the picture twice. The title
+          // matches what the React app renders when the category is unknown.
+          const owner = ownerOf.get(im.id)
+          const canonical = owner ? puzzlePath(owner, im) : route
           const pHtml = buildHtml(template, {
-            title: `${name} Jigsaw Puzzle - Free Online | ${SITE}`,
-            description: `Free ${name} jigsaw puzzle - play online with 12 to 300 pieces, no login.`,
-            canonicalPath: route,
+            title: `${name} Jigsaw Puzzle - Free Puzzle Online | ${SITE}`,
+            description: puzzleDescription(name, im.tags, im.author),
+            canonicalPath: canonical,
             prev: null,
             next: null,
+            robots: NOINDEX_PUZZLES ? 'noindex,follow' : null,
             jsonld: [
               breadcrumbLd([
                 { name: 'Home', path: '/' },
@@ -683,7 +687,7 @@ async function buildLandings(template, labels, sitemap) {
               `<h1>${escHtml(name)} Jigsaw Puzzle</h1>` +
               `<img src="${escAttr(im.url)}" width="${im.w}" height="${im.h}" alt="${escAttr(name)} - free online jigsaw puzzle photo" />` +
               `<p>Photo by ${escHtml(im.author)} on Pixabay.</p>` +
-              `<p>Free ${escHtml(name)} jigsaw puzzle - play online with 12 to 300 pieces, no login.</p>` +
+              `<p>${escHtml(puzzleDescription(name, im.tags, im.author))}</p>` +
               `<p><a href="${escAttr(route)}">Play this puzzle</a> · <a href="/${escAttr(key)}">${escHtml(l.h1)}</a></p>` +
               `</main>`,
           })
@@ -696,12 +700,33 @@ async function buildLandings(template, labels, sitemap) {
   }
 }
 
+/**
+ * Strip anything a previous run injected, so the template is the bare Vite
+ * shell again. Without this, running `npm run seo` on its own (rather than a
+ * full build) reads the already-prerendered home page back in as the template
+ * and emits a second canonical, a second JSON-LD block, and so on.
+ */
+function pristineTemplate(html) {
+  let out = html
+    .replace(/[ \t]*<link rel="canonical"[^>]*>\n?/g, '')
+    .replace(/[ \t]*<link rel="(?:prev|next)"[^>]*>\n?/g, '')
+    .replace(/[ \t]*<meta name="robots"[^>]*>\n?/g, '')
+    .replace(/[ \t]*<script type="application\/ld\+json">[\s\S]*?<\/script>\n?/g, '')
+  const start = out.indexOf('<div id="root">')
+  if (start !== -1) {
+    const bodyEnd = out.indexOf('</body>', start)
+    const end = out.lastIndexOf('</div>', bodyEnd === -1 ? out.length : bodyEnd)
+    if (end > start) out = out.slice(0, start) + '<div id="root"></div>' + out.slice(end + '</div>'.length)
+  }
+  return out
+}
+
 async function main() {
   if (SITE_URL === DEFAULT_DOMAIN) {
     console.info(`ℹ  SITE_URL not set - using default "${DEFAULT_DOMAIN}".`)
     console.info(`   Override with:  SITE_URL=https://example.com npm run build`)
   }
-  const template = await fs.readFile(path.join(DIST, 'index.html'), 'utf8')
+  const template = pristineTemplate(await fs.readFile(path.join(DIST, 'index.html'), 'utf8'))
   const labels = await categoryLabels()
   // Landing pages own catalogues named after their slug (e.g.
   // jigsaw-puzzles-for-seniors.json). Those are curated puzzle grids for the
@@ -723,33 +748,53 @@ async function main() {
       !landingKeys.has(f.replace(/\.json$/, '')),
   )
 
+  // A photo can sit in several catalogues - 4,031 of them do, which would
+  // publish 6,149 pages that are exact duplicates of another page. Give every
+  // image one owning category (alphabetically first, so it is stable from build
+  // to build) and point the other copies' canonical at it. The duplicate pages
+  // stay live and linked for people browsing that category; only Google is told
+  // which one is the original.
+  files.sort()
+  const catalogs = new Map()
+  const ownerOf = new Map()
+  for (const file of files) {
+    const key = file.replace(/\.json$/, '')
+    const images = JSON.parse(await fs.readFile(path.join(CATALOG, file), 'utf8')).images || []
+    catalogs.set(key, images)
+    for (const im of images) if (!ownerOf.has(im.id)) ownerOf.set(im.id, key)
+  }
+
   const sitemap = [] // {loc, priority}
   sitemap.push({ loc: abs('/'), priority: '1.0' })
   sitemap.push({ loc: abs('/categories'), priority: '0.7' })
 
   let catCount = 0
   let puzCount = 0
+  let dupCount = 0
   const categoryIndex = [] // {label, slug, cover, count} for the /categories page
 
   for (const file of files) {
     const key = file.replace(/\.json$/, '')
     const label = labels.get(key) || titleCase(key.replace(/-/g, ' '))
-    slugKeyByLabel.set(label, key)
-    const data = JSON.parse(await fs.readFile(path.join(CATALOG, file), 'utf8'))
-    const images = data.images || []
+    const images = catalogs.get(key)
     const slug = categorySlug(label)
+    // Distinct per-puzzle names + per-category copy, from the same modules the
+    // React app uses - static HTML and hydrated page stay identical.
+    const names = displayNames(images)
+    const copy = categoryCopy(key, label, CATEGORY_FACTS[key])
     categoryIndex.push({ label, slug, cover: images[0]?.thumb || '', count: images.length })
 
     // Category landing page (page 1, canonical).
     const totalPages = Math.max(1, Math.ceil(images.length / PAGE_SIZE))
     const catHtml = buildHtml(template, {
       title: `${label} Online Free Jigsaw Puzzles | ${SITE}`,
-      description: `Play free online ${label.toLowerCase()} jigsaw puzzles - browse ${images.length} hand-picked ${label.toLowerCase()} pictures and solve any of them in 12 to 300 pieces. No login, no downloads.`,
+      description: copy.description,
       canonicalPath: `/${slug}`,
       prev: null,
       next: totalPages > 1 ? `/${slug}?page=2` : null,
-      jsonld: categoryJsonLd(label, slug, images),
-      body: categoryBody(label, slug, images),
+      robots: RICH_ROBOTS,
+      jsonld: categoryJsonLd(key, label, slug, images, names, copy),
+      body: categoryBody(key, label, images, names, copy),
     })
     await writePretty(slug, catHtml)
     sitemap.push({ loc: abs(`/${slug}`), priority: '0.8' })
@@ -757,17 +802,22 @@ async function main() {
 
     // Every puzzle in the category.
     if (PRERENDER_PUZZLES) {
-      await runBatched(images, 200, async (im) => {
+      await runBatched(images, 200, async (im, i) => {
         const route = puzzlePath(key, im)
-        const name = subjectName(im.tags)
+        const name = names[i]
+        // A copy of a photo owned by another category canonicalises onto it.
+        const owner = ownerOf.get(im.id)
+        const canonical = owner && owner !== key ? puzzlePath(owner, im) : route
+        if (canonical !== route) dupCount++
         const html = buildHtml(template, {
           title: `${name} Jigsaw Puzzle - Free ${label} Puzzle Online | ${SITE}`,
-          description: `Free ${name} jigsaw puzzle - play online with 12 to 300 pieces, no login.`,
-          canonicalPath: route,
+          description: puzzleDescription(name, im.tags, im.author),
+          canonicalPath: canonical,
           prev: null,
           next: null,
-          jsonld: puzzleJsonLd(label, key, im),
-          body: puzzleBody(label, key, im),
+          robots: NOINDEX_PUZZLES ? 'noindex,follow' : null,
+          jsonld: puzzleJsonLd(label, key, im, name, canonical),
+          body: puzzleBody(label, key, im, name),
         })
         await writePretty(route, html)
       })
@@ -791,6 +841,7 @@ async function main() {
     canonicalPath: '/categories',
     prev: null,
     next: null,
+    robots: RICH_ROBOTS,
     jsonld: categoriesJsonLd(categoryIndex),
     body: categoriesBody(categoryIndex),
   })
@@ -828,14 +879,16 @@ async function main() {
     const data = JSON.parse(await fs.readFile(path.join(CATALOG, file), 'utf8'))
     const images = data.images || []
     if (!images.length) continue
+    const evNamesList = displayNames(images)
     const html = buildHtml(template, {
       title: `${name} Jigsaw Puzzles - Free Online | ${SITE}`,
       description: `Play free ${name.toLowerCase()} jigsaw puzzles online - a themed collection you can solve from 12 to 300 pieces, earning 3x points during the event. No login, no downloads.`,
       canonicalPath: `/event/${key}`,
       prev: null,
       next: null,
-      jsonld: eventJsonLd(name, key, images),
-      body: eventBody(name, images),
+      robots: RICH_ROBOTS,
+      jsonld: eventJsonLd(name, key, images, evNamesList),
+      body: eventBody(name, images, evNamesList),
     })
     await writePretty(`/event/${key}`, html)
     sitemap.push({ loc: abs(`/event/${key}`), priority: '0.6' })
@@ -848,7 +901,7 @@ async function main() {
   sitemap.push({ loc: abs(DAILY_PATH), priority: '0.9' })
 
   // Prerender the SEO landing pages (custom maker, piece-count, audience).
-  await buildLandings(template, labels, sitemap)
+  await buildLandings(template, labels, sitemap, ownerOf)
 
   // Prerender the home page LAST (overwrites the bare shell template).
   await buildHome(template, labels)
@@ -878,7 +931,8 @@ async function main() {
   )
 
   console.log(
-    `✓ SEO build: ${catCount} category pages, ${puzCount} puzzle pages, ` +
+    `✓ SEO build: ${catCount} category pages, ${puzCount} puzzle pages` +
+      `${NOINDEX_PUZZLES ? ' (noindex)' : ''} (${dupCount} canonicalised onto another category), ` +
       `${sitemap.length} sitemap URLs in ${chunks.length} chunk(s).`,
   )
 }

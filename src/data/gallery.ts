@@ -4,11 +4,16 @@
 // `searchGallery()` returns live results in the same shape.
 import type { PuzzleImage } from '@/types'
 import { searchImages } from '@/api/pixabay'
+import { displayNames, slugName } from './puzzleTitles.mjs'
 
 export type PuzzleTag = 'new' | 'hot' | 'staff' | null
 
 export interface GalleryPuzzle extends PuzzleImage {
+  /** Descriptive display name - the page <h1> and <title>. */
   title: string
+  /** Bare first-tag name the URL slug is built from. Deliberately stable:
+   *  changing it would move every /puzzle/... URL already crawled. */
+  slugTitle: string
   category: string
   pieces: number
   author: string
@@ -90,6 +95,7 @@ function p(
     credit: `Photo by ${author}`,
     tags: title.toLowerCase(),
     title,
+    slugTitle: title,
     category,
     pieces,
     author,
@@ -280,9 +286,13 @@ export async function findPuzzle(category: string, rawId: string): Promise<Galle
 }
 
 /** Map a raw catalogue image to a playable GalleryPuzzle in category `cat`. */
-function catalogImageToPuzzle(im: CatalogImage, i: number, cat: string): GalleryPuzzle {
+function catalogImageToPuzzle(
+  im: CatalogImage,
+  i: number,
+  cat: string,
+  title: string,
+): GalleryPuzzle {
   const id = Number(im.id) || i + 1
-  const title = (im.tags?.split(',')[0] ?? 'Puzzle').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
   return {
     id: `c-${im.id}`,
     url: im.url,
@@ -292,6 +302,7 @@ function catalogImageToPuzzle(im: CatalogImage, i: number, cat: string): Gallery
     credit: `Image by ${im.author} on Pixabay`,
     tags: im.tags,
     title,
+    slugTitle: slugName(im.tags),
     category: cat,
     pieces: guessPieces(i),
     author: im.author,
@@ -306,7 +317,10 @@ async function fetchCatalog(key: string): Promise<GalleryPuzzle[]> {
   const res = await fetch(`${import.meta.env.BASE_URL}catalog/${key}.json`)
   if (!res.ok) throw new Error(`No catalogue for "${key}" (${res.status})`)
   const data = (await res.json()) as { key: string; images: CatalogImage[] }
-  return data.images.map((im, i) => catalogImageToPuzzle(im, i, key))
+  // Display names are computed over the whole category at once - "distinctive"
+  // only means anything relative to the other photos in the same catalogue.
+  const names = displayNames(data.images)
+  return data.images.map((im, i) => catalogImageToPuzzle(im, i, key, names[i]))
 }
 
 /** Curated scenic sections for the home page (houses, architecture, boats,
@@ -317,11 +331,14 @@ export async function loadShowcase(): Promise<GallerySection[]> {
   const data = (await res.json()) as {
     sections: { key: string; title: string; images: CatalogImage[] }[]
   }
-  return data.sections.map((s) => ({
-    key: s.key,
-    title: s.title,
-    puzzles: s.images.map((im, i) => catalogImageToPuzzle(im, i, s.key)),
-  }))
+  return data.sections.map((s) => {
+    const names = displayNames(s.images)
+    return {
+      key: s.key,
+      title: s.title,
+      puzzles: s.images.map((im, i) => catalogImageToPuzzle(im, i, s.key, names[i])),
+    }
+  })
 }
 
 export async function searchGallery(query: string): Promise<GalleryPuzzle[]> {
@@ -329,9 +346,12 @@ export async function searchGallery(query: string): Promise<GalleryPuzzle[]> {
   return imgs.map((im, i) => {
     const id = Number(im.id) || i + 1
     const author = im.credit?.replace(/^Image by\s+/, '').replace(/\s+on Pixabay$/, '') ?? 'Pixabay'
+    // Live search results are never prerendered, so display and slug names match.
+    const title = slugName(im.tags)
     return {
       ...im,
-      title: (im.tags?.split(',')[0] ?? 'Puzzle').replace(/\b\w/g, (m) => m.toUpperCase()).trim(),
+      title,
+      slugTitle: title,
       category: 'search',
       pieces: guessPieces(i),
       author,

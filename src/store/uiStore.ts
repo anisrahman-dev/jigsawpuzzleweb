@@ -156,7 +156,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       puzzleRoute: {
         category: puzzle.category,
         id: puzzle.id.replace(/^[a-z]-/, ''),
-        slug: puzzleSlug(puzzle.title, puzzle.author),
+        slug: puzzleSlug(puzzle.slugTitle, puzzle.author),
       },
     }),
   setDetailPuzzle: (detailPuzzle) => set({ detailPuzzle }),

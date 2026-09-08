@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/clean.mjs && tsc --noEmit && vite build && node scripts/seo-build.mjs",
+    "build": "node scripts/clean.mjs && npm run facts && tsc --noEmit && vite build && node scripts/seo-build.mjs",
+    "facts": "node scripts/build-category-facts.mjs",
     "seo": "node scripts/seo-build.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"

@@ -41,9 +41,11 @@ function upsertLink(rel: string, href: string | null): void {
   el.setAttribute('href', href)
 }
 
-/** Self-referencing canonical (pass a site-relative path incl. any ?query). */
+/** Canonical link. Takes a site-relative path (incl. any ?query) or, when a
+ *  page canonicalises somewhere else entirely, an absolute URL. */
 export function setCanonical(path: string | null): void {
-  upsertLink('canonical', path === null ? null : absUrl(path))
+  if (path === null) return upsertLink('canonical', null)
+  upsertLink('canonical', /^https?:\/\//.test(path) ? path : absUrl(path))
 }
 
 /** rel="prev"/"next" pagination hints (pass null to clear). */
