@@ -6,7 +6,6 @@ export interface CategoryCopy {
   lead: string
   paras: string[]
   faq: { q: string; a: string }[]
-  description: string
 }
 export declare function categoryCopy(
   key: string,

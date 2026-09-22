@@ -7,6 +7,11 @@
 // label swapped in, and one identical 3-question FAQ. To a search engine that
 // is 74 copies of the same page. Here the wording varies by category and, more
 // importantly, each page describes the photographs it actually contains.
+//
+// The prose says "dog jigsaw puzzles", not "dogs jigsaw puzzles": it uses the
+// same exact-match keyword the title targets (see categorySeo.mjs), so the
+// body reinforces the phrase instead of competing with a near-miss variant.
+import { categoryKeywordInline } from './categorySeo.mjs'
 
 /** Stable small hash so a given category always gets the same phrasing. */
 function pick(key, n) {
@@ -56,7 +61,7 @@ const ADVICE = [
  * @param {{count:number,subjects:string[]}=} facts from src/data/categoryFacts.mjs
  */
 export function categoryCopy(key, label, facts) {
-  const l = label.toLowerCase()
+  const l = categoryKeywordInline(key, label)
   const count = facts?.count ?? 0
   const subjects = facts?.subjects ?? []
   const n = count > 0 ? count.toLocaleString('en-US') : 'hundreds of'
@@ -87,13 +92,10 @@ export function categoryCopy(key, label, facts) {
     })
   }
 
-  return {
-    lead: LEAD[v](l, n),
-    paras,
-    faq,
-    description:
-      count > 0
-        ? `Play ${count.toLocaleString('en-US')} free online ${l} jigsaw puzzles${subjects.length ? ` - ${subjects.slice(0, 3).join(', ').toLowerCase()} and more` : ''}. Any picture, 12 to 300 pieces, no login or downloads.`
-        : `Play free online ${l} jigsaw puzzles - any picture, 12 to 300 pieces, no login or downloads.`,
-  }
+  // No `description` here: the meta description is built by
+  // categoryDescription() in categorySeo.mjs, from a hand-written summary of
+  // each catalogue. The auto-generated tag list this used to produce read like
+  // "havanese dog, bench dog, expression bulldog and more" - accurate tags,
+  // but not a sentence anyone would click.
+  return { lead: LEAD[v](l, n), paras, faq }
 }

@@ -2,6 +2,7 @@
 import { useEffect } from 'react'
 import { ALL_CATEGORIES, categorySlug, type CategoryNode } from '@/data/categories'
 import { TOTALS } from '@/data/categoryFacts.mjs'
+import { HOME_COUNTS } from '@/data/homeCopy.mjs'
 import { useUiStore } from '@/store/uiStore'
 import { SITE, absUrl, setMeta, setCanonical, setJsonLd, removeJsonLd, resetHead } from '@/lib/seo'
 import { CategoryTiles } from './CategoryTiles'
@@ -17,12 +18,13 @@ export function CategoriesPage() {
 
   // ── On-page SEO: title, meta description, canonical, breadcrumb + ItemList ──
   useEffect(() => {
-    document.title = `Free Online Jigsaw Puzzle Categories - ${COUNT} Themes | ${SITE}`
+    // Deliberately NOT "free online jigsaw puzzles" - that is the home page's
+    // term, and two pages chasing it would just split the signal.
+    document.title = `Jigsaw Puzzle Categories - ${COUNT} Free Themes | ${SITE}`
     setMeta(
       'description',
-      `Browse all ${COUNT} free online jigsaw puzzle categories on ${SITE} - nature, ` +
-        `wildlife, flowers, cities, food, travel and more. Pick a category, choose a ` +
-        `picture, and play from 12 to 300 pieces. No login, no downloads.`,
+      `Browse all ${COUNT} free online jigsaw puzzle categories - dogs, cats, flowers, ` +
+        `landscapes, castles, space and more. ${HOME_COUNTS.puzzles} puzzles, 12 to 300 pieces.`,
     )
     setCanonical('/categories')
 

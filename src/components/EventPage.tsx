@@ -8,6 +8,7 @@ import {
   type GalleryPuzzle,
 } from '@/data/gallery'
 import { eventTarget, EVENT_POINTS_MULTIPLIER } from '@/data/events'
+import { eventTitle, eventDescription } from '@/data/categorySeo.mjs'
 import { PixabayError } from '@/api/pixabay'
 import { useUiStore } from '@/store/uiStore'
 import { useCountdown } from '@/hooks/useCountdown'
@@ -58,12 +59,13 @@ export function EventPage() {
     if (!event) return
     const path = `/event/${event.key}`
     const name = `${event.name} Jigsaw Puzzles`
-    document.title = `${name} - Free Online | ${SITE}`
+    document.title = eventTitle(event.name, { site: SITE })
     setMeta(
       'description',
-      `Play free ${event.name} jigsaw puzzles online - a themed collection you can ` +
-        `solve from 12 to 300 pieces, earning ${EVENT_POINTS_MULTIPLIER}x points during the ` +
-        `event. No login, no downloads.`,
+      eventDescription(event.name, {
+        count: results?.length ?? 0,
+        multiplier: EVENT_POINTS_MULTIPLIER,
+      }),
     )
     setCanonical(path)
     setJsonLd('ld-ev-breadcrumb', {
@@ -78,7 +80,10 @@ export function EventPage() {
       resetHead()
       removeJsonLd('ld-ev-breadcrumb', 'ld-ev-collection')
     }
-  }, [event])
+    // `results` is a dependency because the description quotes the puzzle
+    // count, which is only known once the catalogue has loaded - that is what
+    // the prerendered HTML says, so the hydrated page must say it too.
+  }, [event, results])
 
   // CollectionPage + ItemList once the themed puzzles are known.
   useEffect(() => {

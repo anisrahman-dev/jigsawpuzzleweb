@@ -1,5 +1,7 @@
-// A single category's page: "<Category> Online Free Jigsaw Puzzles" + intro
-// description + a grid of that category's puzzles (live Pixabay search).
+// A single category's page: "Free <Keyword> Jigsaw Puzzles Online" + intro
+// description + a grid of that category's puzzles. Title, h1 and meta
+// description all come from src/data/categorySeo.mjs, which the prerender step
+// uses too, so the static HTML and the hydrated page stay identical.
 import { useEffect, useMemo, useState } from 'react'
 import {
   GALLERY_PUZZLES,
@@ -10,6 +12,12 @@ import {
 import { PixabayError } from '@/api/pixabay'
 import { categorySlug } from '@/data/categories'
 import { categoryCopy } from '@/data/categoryCopy.mjs'
+import {
+  categoryKeyword,
+  categoryTitle,
+  categoryH1,
+  categoryDescription,
+} from '@/data/categorySeo.mjs'
 import { CATEGORY_FACTS } from '@/data/categoryFacts.mjs'
 import { urlForRoute, puzzleSlug } from '@/router'
 import {
@@ -44,9 +52,6 @@ function pageWindow(current: number, total: number): (number | '…')[] {
   return out
 }
 
-function pageTitle(label: string): string {
-  return `${label} Online Free Jigsaw Puzzles`
-}
 
 export function CategoryPage() {
   const node = useUiStore((s) => s.selectedCategory)
@@ -56,13 +61,18 @@ export function CategoryPage() {
   const page = useUiStore((s) => s.categoryPage)
 
   const label = node?.label ?? 'Jigsaw'
-  // Intro copy, FAQ and meta description come from the module the prerender
+  const key = node?.key ?? ''
+  // The exact-match search phrase this page targets ("Dog", not "Dogs") - see
+  // src/data/categorySeo.mjs. Used in the title, h1 and body prose.
+  const keyword = categoryKeyword(key, label)
+  // Intro copy, FAQ and meta description come from the modules the prerender
   // step also uses, so the static HTML and the hydrated page never disagree.
   // Memoised: the SEO effect depends on it and it must not change identity
   // on every render.
-  const copy = useMemo(
-    () => categoryCopy(node?.key ?? '', label, CATEGORY_FACTS[node?.key ?? '']),
-    [node?.key, label],
+  const copy = useMemo(() => categoryCopy(key, label, CATEGORY_FACTS[key]), [key, label])
+  const metaDescription = useMemo(
+    () => categoryDescription(key, label, CATEGORY_FACTS[key]),
+    [key, label],
   )
 
   // Fetch this category's puzzles.
@@ -98,9 +108,8 @@ export function CategoryPage() {
     const current = Math.min(page, totalPages)
     const path = urlForRoute('category', node, null, current)
 
-    const pageSuffix = current > 1 ? ` (Page ${current})` : ''
-    document.title = `${pageTitle(label)}${pageSuffix} | ${SITE}`
-    setMeta('description', copy.description)
+    document.title = categoryTitle(key, label, { page: current, site: SITE })
+    setMeta('description', metaDescription)
 
     // Self-referencing canonical + prev/next so paginated pages aren't seen as duplicates.
     setCanonical(path)
@@ -125,7 +134,7 @@ export function CategoryPage() {
     setJsonLd('ld-collection', {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
-      name: pageTitle(label),
+      name: categoryH1(key, label),
       url: absUrl(path),
       isPartOf: { '@type': 'WebSite', name: SITE, url: absUrl('/') },
       mainEntity: {
@@ -157,7 +166,7 @@ export function CategoryPage() {
       resetHead()
       removeJsonLd('ld-breadcrumb', 'ld-collection', 'ld-faq')
     }
-  }, [node, label, page, results, copy])
+  }, [node, key, label, page, results, copy, metaDescription])
 
   if (!node) {
     return (
@@ -193,7 +202,7 @@ export function CategoryPage() {
       </nav>
 
       <header className="catpg-head">
-        <h1 className="catpg-title">{pageTitle(label)}</h1>
+        <h1 className="catpg-title">{categoryH1(key, label)}</h1>
         <p className="catpg-desc">{copy.lead}</p>
         {copy.paras.map((para) => (
           <p className="catpg-desc" key={para}>
@@ -202,8 +211,8 @@ export function CategoryPage() {
         ))}
         {!loading && results && results.length > 0 ? (
           <p className="catpg-count">
-            <strong>{results.length}</strong> free {label.toLowerCase()} puzzles · play any from 12
-            to 300 pieces
+            <strong>{results.length}</strong> free {keyword.toLowerCase()} jigsaw puzzles · play any
+            from 12 to 300 pieces
           </p>
         ) : null}
       </header>
@@ -293,7 +302,7 @@ export function CategoryPage() {
 
       <section className="catpg-faq" aria-labelledby="catpg-faq-title">
         <h2 id="catpg-faq-title" className="catpg-faq-title">
-          {label} jigsaw puzzles - frequently asked questions
+          {keyword} jigsaw puzzles - frequently asked questions
         </h2>
         <dl className="catpg-faq-list">
           {copy.faq.map((f) => (

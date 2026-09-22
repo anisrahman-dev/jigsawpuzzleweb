@@ -14,6 +14,15 @@ import { fileURLToPath } from 'node:url'
 // hydrated page are never two different pages in Google's eyes.
 import { slugName, displayNames, puzzleDescription } from '../src/data/puzzleTitles.mjs'
 import { categoryCopy } from '../src/data/categoryCopy.mjs'
+import {
+  categoryKeyword,
+  categoryKeywordInline,
+  categoryTitle,
+  categoryH1,
+  categoryDescription,
+  eventTitle,
+  eventDescription,
+} from '../src/data/categorySeo.mjs'
 import { CATEGORY_FACTS } from '../src/data/categoryFacts.mjs'
 import { HOME_TITLE, HOME_DESC, HOME_FAQ, HOME_COUNTS } from '../src/data/homeCopy.mjs'
 
@@ -28,10 +37,13 @@ const DEFAULT_DOMAIN = 'https://www.jigsawjam.com'
 const OG_IMAGE = '/logo.png' // 512x512 brand logo used for social previews
 const SITE_URL = (process.env.SITE_URL || DEFAULT_DOMAIN).replace(/\/+$/, '')
 const PRERENDER_PUZZLES = process.env.PRERENDER_PUZZLES !== '0'
-// NOINDEX_PUZZLES=1 keeps the ~33k puzzle pages live and linkable but tells
-// Google not to index them. The lever to pull if Search Console shows them
-// soaking up crawl budget instead of the ~130 pages that actually matter.
-const NOINDEX_PUZZLES = process.env.NOINDEX_PUZZLES === '1'
+// The ~33k puzzle pages stay live, playable and internally linked, but carry
+// noindex: Search Console showed the whole set sitting in "Discovered -
+// currently not indexed" while soaking up the crawl budget that the ~130 pages
+// which can actually rank (categories, landings, events, daily) needed. Set
+// NOINDEX_PUZZLES=0 to make them indexable again once the domain has the
+// authority to support 33k thin pages.
+const NOINDEX_PUZZLES = process.env.NOINDEX_PUZZLES !== '0'
 /** Robots directive for pages we want fully indexed with big image previews. */
 const RICH_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1'
 
@@ -172,7 +184,10 @@ function breadcrumbLd(items) {
 }
 
 function categoryBody(key, label, images, names, copy) {
-  const l = escHtml(label.toLowerCase())
+  // Body prose uses the keyword ("dog"), not the label ("Dogs"), so the page
+  // text reinforces the exact phrase the title targets.
+  const kw = categoryKeyword(key, label)
+  const l = categoryKeywordInline(key, label)
   const cards = images
     .slice(0, PAGE_SIZE)
     .map(
@@ -190,13 +205,13 @@ function categoryBody(key, label, images, names, copy) {
     .join('')
   return (
     `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/categories">Categories</a> / <span>${escHtml(label)}</span></nav>` +
-    `<h1>${escHtml(label)} Online Free Jigsaw Puzzles</h1>` +
+    `<h1>${escHtml(categoryH1(key, label))}</h1>` +
     `<p>${escHtml(copy.lead)}</p>` +
     paras +
-    `<p><strong>${images.length}</strong> free ${l} puzzles · play any from 12 to 300 pieces.</p>` +
+    `<p><strong>${images.length}</strong> free ${escHtml(l)} jigsaw puzzles · play any from 12 to 300 pieces.</p>` +
     `<ul class="grid">${cards}</ul>` +
     `<section aria-label="All ${escHtml(label)} puzzles" class="all-index">${allLinks}</section>` +
-    `<section aria-labelledby="faq"><h2 id="faq">${escHtml(label)} jigsaw puzzles - frequently asked questions</h2>${faq}</section>` +
+    `<section aria-labelledby="faq"><h2 id="faq">${escHtml(kw)} jigsaw puzzles - frequently asked questions</h2>${faq}</section>` +
     `</main>`
   )
 }
@@ -219,7 +234,7 @@ function categoryJsonLd(key, label, slug, images, names, copy) {
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
-      name: `${label} Online Free Jigsaw Puzzles`,
+      name: categoryH1(key, label),
       url: abs(url),
       isPartOf: { '@type': 'WebSite', name: SITE, url: abs('/') },
       mainEntity: { '@type': 'ItemList', numberOfItems: items.length, itemListElement: items },
@@ -787,8 +802,8 @@ async function main() {
     // Category landing page (page 1, canonical).
     const totalPages = Math.max(1, Math.ceil(images.length / PAGE_SIZE))
     const catHtml = buildHtml(template, {
-      title: `${label} Online Free Jigsaw Puzzles | ${SITE}`,
-      description: copy.description,
+      title: categoryTitle(key, label, { site: SITE }),
+      description: categoryDescription(key, label, CATEGORY_FACTS[key]),
       canonicalPath: `/${slug}`,
       prev: null,
       next: totalPages > 1 ? `/${slug}?page=2` : null,
@@ -810,7 +825,7 @@ async function main() {
         const canonical = owner && owner !== key ? puzzlePath(owner, im) : route
         if (canonical !== route) dupCount++
         const html = buildHtml(template, {
-          title: `${name} Jigsaw Puzzle - Free ${label} Puzzle Online | ${SITE}`,
+          title: `${name} Jigsaw Puzzle - Free ${categoryKeyword(key, label)} Puzzle Online | ${SITE}`,
           description: puzzleDescription(name, im.tags, im.author),
           canonicalPath: canonical,
           prev: null,
@@ -836,8 +851,10 @@ async function main() {
   // Prerender the /categories index (was an empty SPA shell to crawlers).
   categoryIndex.sort((a, b) => a.label.localeCompare(b.label))
   const categoriesHtml = buildHtml(template, {
-    title: `Free Online Jigsaw Puzzle Categories - ${categoryIndex.length} Themes | ${SITE}`,
-    description: `Browse all ${categoryIndex.length} free online jigsaw puzzle categories on ${SITE} - nature, wildlife, flowers, cities, food, travel and more. Pick a category and play from 12 to 300 pieces. No login, no downloads.`,
+    // Deliberately NOT "free online jigsaw puzzles" - that is the home page's
+    // term, and two pages chasing it would just split the signal.
+    title: `Jigsaw Puzzle Categories - ${categoryIndex.length} Free Themes | ${SITE}`,
+    description: `Browse all ${categoryIndex.length} free online jigsaw puzzle categories - dogs, cats, flowers, landscapes, castles, space and more. ${HOME_COUNTS.puzzles} puzzles, 12 to 300 pieces.`,
     canonicalPath: '/categories',
     prev: null,
     next: null,
@@ -881,8 +898,8 @@ async function main() {
     if (!images.length) continue
     const evNamesList = displayNames(images)
     const html = buildHtml(template, {
-      title: `${name} Jigsaw Puzzles - Free Online | ${SITE}`,
-      description: `Play free ${name.toLowerCase()} jigsaw puzzles online - a themed collection you can solve from 12 to 300 pieces, earning 3x points during the event. No login, no downloads.`,
+      title: eventTitle(name, { site: SITE }),
+      description: eventDescription(name, { count: images.length }),
       canonicalPath: `/event/${key}`,
       prev: null,
       next: null,
