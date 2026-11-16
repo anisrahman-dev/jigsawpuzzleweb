@@ -37,15 +37,16 @@ const DEFAULT_DOMAIN = 'https://www.jigsawjam.com'
 const OG_IMAGE = '/logo.png' // 512x512 brand logo used for social previews
 const SITE_URL = (process.env.SITE_URL || DEFAULT_DOMAIN).replace(/\/+$/, '')
 const PRERENDER_PUZZLES = process.env.PRERENDER_PUZZLES !== '0'
-// The ~33k puzzle pages stay live, playable and internally linked, but carry
-// noindex: Search Console showed the whole set sitting in "Discovered -
-// currently not indexed" while soaking up the crawl budget that the ~130 pages
-// which can actually rank (categories, landings, events, daily) needed. Set
-// NOINDEX_PUZZLES=0 to make them indexable again once the domain has the
-// authority to support 33k thin pages.
-const NOINDEX_PUZZLES = process.env.NOINDEX_PUZZLES !== '0'
 /** Robots directive for pages we want fully indexed with big image previews. */
 const RICH_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1'
+// Every puzzle page is indexable, and each canonical one is listed in its own
+// image sitemap (sitemaps/puzzles-N.xml) with an <image:image> entry, so Google
+// can index every photo individually in web and image search. Duplicate copies
+// of a photo canonicalise onto the owning category and are left out. Set
+// NOINDEX_PUZZLES=1 to go back to noindex + no puzzle sitemap (the July 2026
+// crawl-budget setting) if the set stalls in "Discovered - not indexed" again.
+const NOINDEX_PUZZLES = process.env.NOINDEX_PUZZLES === '1'
+const PUZZLE_ROBOTS = NOINDEX_PUZZLES ? 'noindex,follow' : RICH_ROBOTS
 
 // ── helpers ──────────────────────────────────────────────────────────────
 const escAttr = (s) =>
@@ -385,6 +386,27 @@ function puzzleJsonLd(label, catKey, im, name, canonical) {
   ]
 }
 
+// ── sitemap helpers ──────────────────────────────────────────────────────
+function puzzleSitemapEntry(route, im, name) {
+  return { loc: abs(route), priority: '0.5', image: { loc: im.url, title: `${name} Jigsaw Puzzle` } }
+}
+
+function urlsetXml(urls) {
+  const hasImages = urls.some((u) => u.image)
+  const body = urls
+    .map((u) => {
+      const img = u.image
+        ? `<image:image><image:loc>${escHtml(u.image.loc)}</image:loc><image:title>${escHtml(u.image.title)}</image:title></image:image>`
+        : ''
+      return `  <url><loc>${escHtml(u.loc)}</loc><priority>${u.priority}</priority>${img}</url>`
+    })
+    .join('\n')
+  const ns =
+    'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' +
+    (hasImages ? ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' : '')
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset ${ns}>\n${body}\n</urlset>\n`
+}
+
 // ── write helpers ────────────────────────────────────────────────────────
 async function writePretty(routePath, html) {
   // /a/b -> dist/a/b.html - static hosts (Netlify/Vercel/Pages) and `vite
@@ -575,7 +597,7 @@ async function buildDaily(template, labels) {
 
 // ── SEO landing pages (custom maker, piece-count, audience) ─────────────────
 // Driven by src/data/landings.json - the same file the React app imports.
-async function buildLandings(template, labels, sitemap, ownerOf) {
+async function buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap) {
   const raw = JSON.parse(await fs.readFile(path.join(ROOT, 'src', 'data', 'landings.json'), 'utf8'))
   for (const [key, l] of Object.entries(raw)) {
     const catLinks = (l.categoryKeys || [])
@@ -677,7 +699,7 @@ async function buildLandings(template, labels, sitemap, ownerOf) {
             canonicalPath: canonical,
             prev: null,
             next: null,
-            robots: NOINDEX_PUZZLES ? 'noindex,follow' : null,
+            robots: PUZZLE_ROBOTS,
             jsonld: [
               breadcrumbLd([
                 { name: 'Home', path: '/' },
@@ -707,10 +729,11 @@ async function buildLandings(template, labels, sitemap, ownerOf) {
               `</main>`,
           })
           await writePretty(route, pHtml)
+          // Only photos with no category home are canonical here; the rest are
+          // already listed under their owning category's URL.
+          if (canonical === route) puzzleSitemap.push(puzzleSitemapEntry(route, im, name))
         })
       }
-      // Curated landing puzzle pages stay live/crawlable but are kept out of the
-      // sitemap for the same crawl-budget reason as category puzzle pages above.
     }
   }
 }
@@ -780,6 +803,7 @@ async function main() {
   }
 
   const sitemap = [] // {loc, priority}
+  const puzzleSitemap = [] // {loc, priority, image} - one per canonical puzzle page
   sitemap.push({ loc: abs('/'), priority: '1.0' })
   sitemap.push({ loc: abs('/categories'), priority: '0.7' })
 
@@ -830,20 +854,15 @@ async function main() {
           canonicalPath: canonical,
           prev: null,
           next: null,
-          robots: NOINDEX_PUZZLES ? 'noindex,follow' : null,
+          robots: PUZZLE_ROBOTS,
           jsonld: puzzleJsonLd(label, key, im, name, canonical),
           body: puzzleBody(label, key, im, name),
         })
         await writePretty(route, html)
+        if (canonical === route) puzzleSitemap.push(puzzleSitemapEntry(route, im, name))
       })
       puzCount += images.length
     }
-    // NOTE: individual puzzle pages are intentionally NOT added to the sitemap.
-    // At ~30K near-identical thin pages, listing them all made Google defer the
-    // entire set as "Discovered - currently not indexed" (crawl-budget triage on
-    // a young domain). They stay live and crawlable via category internal links,
-    // so they index gradually as authority grows - while the sitemap points
-    // Google at the ~250 high-value pages (categories, landings, events, daily).
     process.stdout.write(`\r  ${catCount}/${files.length} categories, ${puzCount} puzzle pages…   `)
   }
   process.stdout.write('\n')
@@ -918,28 +937,36 @@ async function main() {
   sitemap.push({ loc: abs(DAILY_PATH), priority: '0.9' })
 
   // Prerender the SEO landing pages (custom maker, piece-count, audience).
-  await buildLandings(template, labels, sitemap, ownerOf)
+  await buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap)
 
   // Prerender the home page LAST (overwrites the bare shell template).
   await buildHome(template, labels)
 
   // ── sitemap (chunked) + index + robots ──────────────────────────────────
+  // Pages and puzzles go in separate files so Search Console reports their
+  // indexing separately. Puzzle files carry Google's image extension.
   const CHUNK = 25000
   await fs.mkdir(path.join(DIST, 'sitemaps'), { recursive: true })
-  const chunks = []
-  for (let i = 0; i < sitemap.length; i += CHUNK) chunks.push(sitemap.slice(i, i + CHUNK))
-  await Promise.all(
-    chunks.map((chunk, i) => {
-      const urls = chunk
-        .map((u) => `  <url><loc>${escHtml(u.loc)}</loc><priority>${u.priority}</priority></url>`)
-        .join('\n')
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`
-      return fs.writeFile(path.join(DIST, 'sitemaps', `sitemap-${i + 1}.xml`), xml)
-    }),
-  )
+  // Drop sitemap files from a previous run (chunk counts can shrink).
+  for (const f of await fs.readdir(path.join(DIST, 'sitemaps'))) {
+    if (f.endsWith('.xml')) await fs.rm(path.join(DIST, 'sitemaps', f))
+  }
+  const groups = [{ prefix: 'sitemap', urls: sitemap }]
+  if (!NOINDEX_PUZZLES) {
+    puzzleSitemap.sort((a, b) => a.loc.localeCompare(b.loc))
+    groups.push({ prefix: 'puzzles', urls: puzzleSitemap })
+  }
+  const smFiles = []
+  for (const { prefix, urls } of groups) {
+    for (let i = 0; i < urls.length; i += CHUNK) {
+      const name = `${prefix}-${i / CHUNK + 1}.xml`
+      smFiles.push(name)
+      await fs.writeFile(path.join(DIST, 'sitemaps', name), urlsetXml(urls.slice(i, i + CHUNK)))
+    }
+  }
   const indexXml =
     `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-    chunks.map((_, i) => `  <sitemap><loc>${abs(`/sitemaps/sitemap-${i + 1}.xml`)}</loc></sitemap>`).join('\n') +
+    smFiles.map((f) => `  <sitemap><loc>${abs(`/sitemaps/${f}`)}</loc></sitemap>`).join('\n') +
     `\n</sitemapindex>\n`
   await fs.writeFile(path.join(DIST, 'sitemap.xml'), indexXml)
   await fs.writeFile(
@@ -950,7 +977,7 @@ async function main() {
   console.log(
     `✓ SEO build: ${catCount} category pages, ${puzCount} puzzle pages` +
       `${NOINDEX_PUZZLES ? ' (noindex)' : ''} (${dupCount} canonicalised onto another category), ` +
-      `${sitemap.length} sitemap URLs in ${chunks.length} chunk(s).`,
+      `${sitemap.length} page + ${NOINDEX_PUZZLES ? 0 : puzzleSitemap.length} puzzle/image sitemap URLs in ${smFiles.length} file(s).`,
   )
 }
 
