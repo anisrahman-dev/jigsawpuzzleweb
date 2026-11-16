@@ -68,7 +68,7 @@ export function LandingPage() {
         {puzzles.length > 0 && (
           <div className="puzzle-grid landing-puzzles">
             {puzzles.map((p) => (
-              <PuzzleCard key={p.id} puzzle={p} />
+              <PuzzleCard key={p.id} puzzle={p} linked />
             ))}
           </div>
         )}

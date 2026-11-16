@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url'
 // Copy + naming shared with the React app so the prerendered HTML and the
 // hydrated page are never two different pages in Google's eyes.
 import { slugName, displayNames, puzzleDescription } from '../src/data/puzzleTitles.mjs'
+import { categoryContext, puzzleCopy } from '../src/data/puzzleCopy.mjs'
+import { POSTS } from './blog-posts.mjs'
 import { categoryCopy } from '../src/data/categoryCopy.mjs'
 import {
   categoryKeyword,
@@ -351,19 +353,47 @@ function eventJsonLd(name, key, images, names) {
   ]
 }
 
-function puzzleBody(label, catKey, im, name) {
+/**
+ * The per-photo copy block shared by category and curated-landing puzzle
+ * pages. Mirrors PuzzlePage.tsx section for section, so the hydrated page
+ * Google renders says the same thing as this static HTML.
+ */
+function puzzleCopyHtml(ctx, i, copy, catKey) {
+  const p = (t) => `<p>${escHtml(t)}</p>`
+  const facts = copy.facts.map((f) => `<dt>${escHtml(f.k)}</dt><dd>${escHtml(f.v)}</dd>`).join('')
+  const similar = copy.similar
+    .map((j) => {
+      const im = ctx.images[j]
+      return (
+        `<li><a href="${escAttr(puzzlePath(catKey, im))}"><img src="${escAttr(im.thumb)}" width="${im.w}" height="${im.h}" ` +
+        `alt="${escAttr(ctx.names[j])} jigsaw puzzle" loading="lazy" /><span>${escHtml(ctx.names[j])}</span></a></li>`
+      )
+    })
+    .join('')
+  return (
+    `<section><h2>${escHtml(copy.headings.about)}</h2>${p(copy.about)}${copy.photographer ? p(copy.photographer) : ''}` +
+    `<dl>${facts}</dl>` +
+    (copy.tags.length ? `<p>Tags: ${copy.tags.map((t) => escHtml(t)).join(', ')}</p>` : '') +
+    `</section>` +
+    `<section><h2>${escHtml(copy.headings.sizes)}</h2>${p(copy.sizes)}</section>` +
+    `<section><h2>${escHtml(copy.headings.tips)}</h2><ul>${copy.tips.map((t) => `<li>${escHtml(t)}</li>`).join('')}</ul></section>` +
+    (similar ? `<section><h2>${escHtml(copy.headings.similar)}</h2><ul class="grid">${similar}</ul></section>` : '')
+  )
+}
+
+function puzzleBody(label, catKey, im, name, ctx, i, copy) {
   return (
     `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/${categorySlug(label)}">${escHtml(label)}</a> / <span>${escHtml(name)}</span></nav>` +
     `<h1>${escHtml(name)} Jigsaw Puzzle</h1>` +
     `<img src="${escAttr(im.url)}" width="${im.w}" height="${im.h}" alt="${escAttr(name)} - free online jigsaw puzzle photo" />` +
     `<p>Photo by ${escHtml(im.author)} on Pixabay.</p>` +
-    `<p>${escHtml(puzzleDescription(name, im.tags, im.author))}</p>` +
     `<p><a href="${escAttr(puzzlePath(catKey, im))}">Play this puzzle</a> · <a href="/${categorySlug(label)}">More ${escHtml(label)} puzzles</a></p>` +
+    puzzleCopyHtml(ctx, i, copy, catKey) +
     `</main>`
   )
 }
 
-function puzzleJsonLd(label, catKey, im, name, canonical) {
+function puzzleJsonLd(label, catKey, im, name, canonical, copy) {
   const url = canonical ?? puzzlePath(catKey, im)
   return [
     breadcrumbLd([
@@ -375,12 +405,16 @@ function puzzleJsonLd(label, catKey, im, name, canonical) {
       '@context': 'https://schema.org',
       '@type': 'ImageObject',
       name: `${name} Jigsaw Puzzle`,
+      description: copy.about,
+      keywords: copy.tags.join(', '),
       contentUrl: im.url,
       thumbnailUrl: im.thumb,
       width: im.w,
       height: im.h,
       creditText: `${im.author} on Pixabay`,
       creator: { '@type': 'Person', name: im.author },
+      license: 'https://pixabay.com/service/license-summary/',
+      acquireLicensePage: `https://pixabay.com/photos/id-${im.id}/`,
       isPartOf: { '@type': 'WebPage', url: abs(url) },
     },
   ]
@@ -398,7 +432,8 @@ function urlsetXml(urls) {
       const img = u.image
         ? `<image:image><image:loc>${escHtml(u.image.loc)}</image:loc><image:title>${escHtml(u.image.title)}</image:title></image:image>`
         : ''
-      return `  <url><loc>${escHtml(u.loc)}</loc><priority>${u.priority}</priority>${img}</url>`
+      const lm = u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''
+      return `  <url><loc>${escHtml(u.loc)}</loc>${lm}<priority>${u.priority}</priority>${img}</url>`
     })
     .join('\n')
   const ns =
@@ -433,6 +468,155 @@ const SPA_ROUTES = [
 
 /** Prerender the home page: full head (canonical, OG/Twitter, robots, @graph)
  *  + crawlable body so non-JS crawlers and AI engines see real content. */
+// ── blog (/blog, /blog/<slug>) ───────────────────────────────────────────
+// Plain static pages: the app bundle is stripped, because the SPA has no blog
+// route and mounting it would replace the article with the home view.
+const BLOG_CSS = [
+  '[data-prerender] .site-nav{display:flex;flex-wrap:wrap;gap:16px;font-size:.95rem;padding-bottom:12px;border-bottom:1px solid #e3e6ea;margin-bottom:20px}',
+  '[data-prerender] .site-nav a:first-child{font-weight:700;margin-right:auto}',
+  '[data-prerender] article{max-width:760px}',
+  '[data-prerender] .meta{color:#5b6470;font-size:.9rem}',
+  '[data-prerender]{overflow-wrap:break-word}',
+  '[data-prerender] table{border-collapse:collapse;margin:1em 0;font-size:.95rem;display:block;overflow-x:auto;max-width:100%}',
+  '[data-prerender] th,[data-prerender] td{border:1px solid #d6dae0;padding:8px 10px;text-align:left}',
+  '[data-prerender] th{background:#f3f5f8}',
+  '[data-prerender] .post-list{list-style:none;padding:0}',
+  '[data-prerender] .post-list li{margin:0 0 1.4em}',
+  '[data-prerender] footer{margin-top:3em;padding-top:12px;border-top:1px solid #e3e6ea;font-size:.9rem;color:#5b6470}',
+  '@media (prefers-color-scheme:dark){body{background:#14171c}[data-prerender]{color:#e6e8eb}[data-prerender] a{color:#7fb0ff}[data-prerender] th{background:#1f242b}[data-prerender] th,[data-prerender] td{border-color:#333a44}[data-prerender] .site-nav,[data-prerender] footer{border-color:#333a44}}',
+].join('')
+
+/** Escape, then turn [label](/path) and **bold** into markup. */
+function inline(t) {
+  return escHtml(t)
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, l, h) => `<a href="${escAttr(h)}">${l}</a>`)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+}
+const plain = (t) => t.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\*\*/g, '')
+
+function blogBlocks(blocks) {
+  return blocks
+    .map((b) => {
+      if (b.h2) return `<h2>${inline(b.h2)}</h2>`
+      if (b.p) return `<p>${inline(b.p)}</p>`
+      if (b.ul) return `<ul>${b.ul.map((x) => `<li>${inline(x)}</li>`).join('')}</ul>`
+      if (b.ol) return `<ol>${b.ol.map((x) => `<li>${inline(x)}</li>`).join('')}</ol>`
+      if (b.table)
+        return (
+          `<table><thead><tr>${b.table.head.map((h) => `<th>${inline(h)}</th>`).join('')}</tr></thead><tbody>` +
+          b.table.rows.map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`).join('') +
+          `</tbody></table>`
+        )
+      if (b.faq)
+        return b.faq.map(([q, a]) => `<h3>${inline(q)}</h3><p>${inline(a)}</p>`).join('')
+      throw new Error(`Unknown blog block: ${JSON.stringify(b)}`)
+    })
+    .join('')
+}
+
+function staticPage(template, opts) {
+  return buildHtml(template, opts)
+    .replace(/\s*<script type="module"[^>]*><\/script>/g, '')
+    .replace(/\s*<link rel="(stylesheet|modulepreload)"[^>]*>/g, '')
+    // After the base prerender CSS, so the dark-mode overrides win.
+    .replace(`<style>${PRERENDER_CSS}`, `<style>${PRERENDER_CSS}${BLOG_CSS}`)
+}
+
+const siteNav = () =>
+  `<nav class="site-nav" aria-label="Site"><a href="/">${SITE}</a><a href="/categories">Categories</a>` +
+  `<a href="${DAILY_PATH}">Daily puzzle</a><a href="/blog">Blog</a></nav>`
+const siteFooter = `<footer><a href="/">Play free online jigsaw puzzles</a> · <a href="/categories">All categories</a> · <a href="/blog">Blog</a></footer>`
+const fmtDate = (d) =>
+  new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
+
+async function buildBlog(template, sitemap) {
+  const posts = [...POSTS].sort((a, b) => b.date.localeCompare(a.date))
+  for (const post of posts) {
+    const route = `/blog/${post.slug}`
+    const others = posts.filter((p) => p !== post)
+    const faq = post.blocks.find((b) => b.faq)?.faq
+    const html = staticPage(template, {
+      title: `${post.title} | ${SITE}`,
+      description: post.description,
+      canonicalPath: route,
+      prev: null,
+      next: null,
+      robots: RICH_ROBOTS,
+      jsonld: [
+        breadcrumbLd([
+          { name: 'Home', path: '/' },
+          { name: 'Blog', path: '/blog' },
+          { name: post.h1, path: route },
+        ]),
+        {
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: post.h1,
+          description: post.description,
+          datePublished: post.date,
+          dateModified: post.updated || post.date,
+          mainEntityOfPage: abs(route),
+          image: abs(OG_IMAGE),
+          author: { '@type': 'Organization', name: SITE, url: abs('/') },
+          publisher: { '@type': 'Organization', name: SITE, logo: { '@type': 'ImageObject', url: abs('/logo.png') } },
+        },
+        ...(faq
+          ? [{
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: plain(a) } })),
+            }]
+          : []),
+      ],
+      body:
+        `${siteNav()}<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/blog">Blog</a> / <span>${escHtml(post.h1)}</span></nav>` +
+        `<article><h1>${escHtml(post.h1)}</h1>` +
+        `<p class="meta"><time datetime="${post.date}">${fmtDate(post.date)}</time> · ${post.readMins} min read</p>` +
+        blogBlocks(post.blocks) +
+        `</article>` +
+        (others.length
+          ? `<h2>More from the blog</h2><ul>${others.map((o) => `<li><a href="/blog/${escAttr(o.slug)}">${escHtml(o.h1)}</a></li>`).join('')}</ul>`
+          : '') +
+        `</main>${siteFooter}`,
+    })
+    await writePretty(route, html)
+    sitemap.push({ loc: abs(route), priority: '0.6', lastmod: post.updated || post.date })
+  }
+
+  const index = staticPage(template, {
+    title: `Jigsaw Puzzle Blog - Tips, Guides and How-Tos | ${SITE}`,
+    description: 'Jigsaw puzzle tips and guides from JigsawJam: how to play free online jigsaw puzzles with no download, how to solve them faster, and how many pieces to choose.',
+    canonicalPath: '/blog',
+    prev: null,
+    next: null,
+    robots: RICH_ROBOTS,
+    jsonld: [
+      breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Blog', path: '/blog' }]),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Blog',
+        name: `${SITE} Blog`,
+        url: abs('/blog'),
+        blogPost: posts.map((p) => ({ '@type': 'BlogPosting', headline: p.h1, url: abs(`/blog/${p.slug}`), datePublished: p.date })),
+      },
+    ],
+    body:
+      `${siteNav()}<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>Blog</span></nav>` +
+      `<h1>Jigsaw Puzzle Tips and Guides</h1>` +
+      `<p>Practical guides to playing and solving jigsaw puzzles online - free, in your browser, with no download.</p>` +
+      `<ul class="post-list">${posts
+        .map(
+          (p) =>
+            `<li><h2><a href="/blog/${escAttr(p.slug)}">${escHtml(p.h1)}</a></h2>` +
+            `<p class="meta"><time datetime="${p.date}">${fmtDate(p.date)}</time> · ${p.readMins} min read</p><p>${escHtml(p.description)}</p></li>`,
+        )
+        .join('')}</ul></main>${siteFooter}`,
+  })
+  await writePretty('/blog', index)
+  sitemap.push({ loc: abs('/blog'), priority: '0.6', lastmod: posts[0]?.date })
+  return posts.length
+}
+
 async function buildHome(template, labels) {
   const topKeys = ['dogs', 'cats', 'birds', 'flowers', 'beaches', 'landscapes', 'space', 'food', 'castles', 'trains']
   const top = topKeys.map((k) => {
@@ -529,9 +713,9 @@ async function buildHome(template, labels) {
 // A dedicated landing page that owns the high-volume "daily jigsaw puzzle" /
 // "puzzle of the day" search cluster (rivals rank #1 with a page like this).
 const DAILY_PATH = '/daily-jigsaw-puzzle'
-const DAILY_TITLE = `Daily Jigsaw Puzzle - Free Puzzle of the Day | ${SITE}`
+const DAILY_TITLE = `Daily Jigsaw Puzzle Online Free - No Download | ${SITE}`
 const DAILY_DESC =
-  "Play today's free daily jigsaw puzzle online - a new Puzzle of the Day every day, solvable from 12 to 300 pieces. No login, no app, no downloads."
+  "Play today's free daily jigsaw puzzle online without downloading - a new Puzzle of the Day every day for adults and kids, 12 to 300 pieces. No login, no app."
 const DAILY_FAQ = [
   ['What is the daily jigsaw puzzle?', `A new featured jigsaw puzzle - the Puzzle of the Day - is published on ${SITE} every day. Everyone sees the same puzzle each calendar day, and it is free to play with no login or download.`],
   ['Is the daily puzzle of the day free?', `Yes. Today's daily jigsaw puzzle, and every puzzle on ${SITE}, is completely free to play online in your browser - no account, no subscription and no app required.`],
@@ -685,9 +869,11 @@ async function buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap) 
     // Prerender each curated puzzle page (breadcrumb → this landing).
     if (images.length) {
       if (PRERENDER_PUZZLES) {
+        const ctx = categoryContext(images, names)
         await runBatched(images, 200, async (im, i) => {
           const name = names[i]
           const route = puzzlePath(key, im)
+          const copy = puzzleCopy(ctx, i, null)
           // Curated landing photos are usually also in a category - canonicalise
           // onto that copy rather than publishing the picture twice. The title
           // matches what the React app renders when the category is unknown.
@@ -710,6 +896,10 @@ async function buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap) 
                 '@context': 'https://schema.org',
                 '@type': 'ImageObject',
                 name: `${name} Jigsaw Puzzle`,
+                description: copy.about,
+                keywords: copy.tags.join(', '),
+                license: 'https://pixabay.com/service/license-summary/',
+                acquireLicensePage: `https://pixabay.com/photos/id-${im.id}/`,
                 contentUrl: im.url,
                 thumbnailUrl: im.thumb,
                 width: im.w,
@@ -724,8 +914,8 @@ async function buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap) 
               `<h1>${escHtml(name)} Jigsaw Puzzle</h1>` +
               `<img src="${escAttr(im.url)}" width="${im.w}" height="${im.h}" alt="${escAttr(name)} - free online jigsaw puzzle photo" />` +
               `<p>Photo by ${escHtml(im.author)} on Pixabay.</p>` +
-              `<p>${escHtml(puzzleDescription(name, im.tags, im.author))}</p>` +
               `<p><a href="${escAttr(route)}">Play this puzzle</a> · <a href="/${escAttr(key)}">${escHtml(l.h1)}</a></p>` +
+              puzzleCopyHtml(ctx, i, copy, key) +
               `</main>`,
           })
           await writePretty(route, pHtml)
@@ -841,9 +1031,11 @@ async function main() {
 
     // Every puzzle in the category.
     if (PRERENDER_PUZZLES) {
+      const ctx = categoryContext(images, names)
       await runBatched(images, 200, async (im, i) => {
         const route = puzzlePath(key, im)
         const name = names[i]
+        const copy = puzzleCopy(ctx, i, label)
         // A copy of a photo owned by another category canonicalises onto it.
         const owner = ownerOf.get(im.id)
         const canonical = owner && owner !== key ? puzzlePath(owner, im) : route
@@ -855,8 +1047,8 @@ async function main() {
           prev: null,
           next: null,
           robots: PUZZLE_ROBOTS,
-          jsonld: puzzleJsonLd(label, key, im, name, canonical),
-          body: puzzleBody(label, key, im, name),
+          jsonld: puzzleJsonLd(label, key, im, name, canonical, copy),
+          body: puzzleBody(label, key, im, name, ctx, i, copy),
         })
         await writePretty(route, html)
         if (canonical === route) puzzleSitemap.push(puzzleSitemapEntry(route, im, name))
@@ -940,6 +1132,7 @@ async function main() {
   await buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap)
 
   // Prerender the home page LAST (overwrites the bare shell template).
+  console.log(`  ${await buildBlog(template, sitemap)} blog posts`)
   await buildHome(template, labels)
 
   // ── sitemap (chunked) + index + robots ──────────────────────────────────

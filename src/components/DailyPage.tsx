@@ -12,9 +12,9 @@ import { Icon } from '@/components/Icon'
 import './GalleryHome.css'
 
 const DAILY_PATH = '/daily-jigsaw-puzzle'
-const DAILY_TITLE = 'Daily Jigsaw Puzzle - Free Puzzle of the Day | JigsawJam'
+const DAILY_TITLE = 'Daily Jigsaw Puzzle Online Free - No Download | JigsawJam'
 const DAILY_DESC =
-  "Play today's free daily jigsaw puzzle online - a new Puzzle of the Day every day, solvable from 12 to 300 pieces. No login, no app, no downloads."
+  "Play today's free daily jigsaw puzzle online without downloading - a new Puzzle of the Day every day for adults and kids, 12 to 300 pieces. No login, no app."
 
 const TOP_KEYS = ['dogs', 'cats', 'birds', 'flowers', 'beaches', 'landscapes', 'space', 'food', 'castles', 'trains']
 const TOP_CATEGORIES = TOP_KEYS.map((k) => {

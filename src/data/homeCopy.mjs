@@ -37,6 +37,14 @@ export const HOME_FAQ = [
     a: `JigsawJam has ${PUZZLES} puzzles organized into ${CATEGORIES} categories, including Dogs, Cats, Birds, Flowers, Beaches, Landscapes, Space, Food, Castles and Trains.`,
   },
   {
+    q: 'Are these classic jigsaw puzzles?',
+    a: 'Yes. Every puzzle is a classic jigsaw: a real photograph cut into traditional interlocking tab-and-blank pieces that you drag into place and snap together, from a 12-piece warm-up to a 300-piece challenge. It is a jigsaw puzzle game you play online, not a sliding or swap puzzle.',
+  },
+  {
+    q: 'Are the jigsaw puzzles unblocked?',
+    a: 'JigsawJam is an ordinary website served over HTTPS with no Flash, plugins, downloads or pop-ups, so it opens wherever normal websites do. Whether a school or office network allows it depends on that network’s own filter.',
+  },
+  {
     q: 'What is the Puzzle of the Day?',
     a: 'A new featured puzzle is published every day. During seasonal events such as Halloween and Christmas, solving puzzles earns triple (3x) points while the event is running.',
   },

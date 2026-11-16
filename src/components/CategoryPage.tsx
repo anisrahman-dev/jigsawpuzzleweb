@@ -146,7 +146,7 @@ export function CategoryPage() {
           name: `${p.title} Jigsaw Puzzle`,
           image: p.thumbUrl,
           url: absUrl(
-            `/puzzle/${node.key}/${p.id.replace(/^[a-z]-/, '')}/${puzzleSlug(p.title, p.author)}`,
+            `/puzzle/${node.key}/${p.id.replace(/^[a-z]-/, '')}/${puzzleSlug(p.slugTitle, p.author)}`,
           ),
         })),
       },
@@ -254,7 +254,7 @@ export function CategoryPage() {
               <>
                 <div className="puzzle-grid">
                   {slice.map((p) => (
-                    <PuzzleCard key={p.id} puzzle={p} />
+                    <PuzzleCard key={p.id} puzzle={p} linked />
                   ))}
                 </div>
                 {totalPages > 1 && (

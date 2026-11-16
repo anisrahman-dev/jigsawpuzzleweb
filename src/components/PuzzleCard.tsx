@@ -1,6 +1,7 @@
 import type { GalleryPuzzle } from '@/data/gallery'
 import { useUiStore } from '@/store/uiStore'
 import { Icon } from '@/components/Icon'
+import { puzzleSlug } from '@/router'
 import './PuzzleCard.css'
 
 const TAG_LABEL: Record<'new' | 'hot' | 'staff', string> = {
@@ -37,17 +38,29 @@ function thumbSources(url: string, thumbUrl: string): { src: string; srcSet?: st
  * top-right and an optional tag ribbon top-left. The whole card opens the start
  * preview; on hover it lifts and the image gently zooms.
  */
-export function PuzzleCard({ puzzle }: { puzzle: GalleryPuzzle }) {
+export function PuzzleCard({ puzzle, linked = false }: { puzzle: GalleryPuzzle; linked?: boolean }) {
   const tag = puzzle.tag
   const { src, srcSet } = thumbSources(puzzle.url, puzzle.thumbUrl)
+  const label = `Open ${puzzle.title} by ${puzzle.author}`
+
+  // `linked` cards are real <a href> links to the puzzle's own page, so the
+  // rendered DOM Google indexes keeps a crawlable path to every puzzle. Only
+  // used where that page is prerendered (categories, landings); a plain click
+  // still opens it in-app.
+  const Root = linked ? 'a' : 'button'
+  const rootProps = linked
+    ? {
+        href: `/puzzle/${puzzle.category}/${puzzle.id.replace(/^[a-z]-/, '')}/${puzzleSlug(puzzle.slugTitle, puzzle.author)}`,
+        onClick: (e: React.MouseEvent) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+          e.preventDefault()
+          useUiStore.getState().viewPuzzle(puzzle)
+        },
+      }
+    : { type: 'button' as const, onClick: () => useUiStore.getState().viewPuzzle(puzzle) }
 
   return (
-    <button
-      type="button"
-      className="card-root"
-      onClick={() => useUiStore.getState().viewPuzzle(puzzle)}
-      aria-label={`Open ${puzzle.title} by ${puzzle.author}`}
-    >
+    <Root className="card-root" aria-label={label} {...(rootProps as object)}>
       <img
         className="card-img"
         // Full-quality image on large/retina tiles, lighter variants on phones
@@ -75,6 +88,6 @@ export function PuzzleCard({ puzzle }: { puzzle: GalleryPuzzle }) {
           by {puzzle.author}
         </span>
       </span>
-    </button>
+    </Root>
   )
 }

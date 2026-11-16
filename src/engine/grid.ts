@@ -11,26 +11,9 @@ export function presetFor(key: Difficulty): DifficultyPreset {
   return DIFFICULTIES.find((d) => d.key === key) ?? DIFFICULTIES[1]
 }
 
-/**
- * Choose a cols×rows grid whose total is close to `targetPieces` while keeping
- * piece cells as square as possible for the given image aspect ratio.
- */
-export function fitGrid(
-  targetPieces: number,
-  imgWidth: number,
-  imgHeight: number,
-): { cols: number; rows: number } {
-  const aspect = imgWidth / imgHeight
-  // cols/rows ≈ aspect, cols*rows ≈ target  →  cols ≈ sqrt(target*aspect)
-  let cols = Math.max(2, Math.round(Math.sqrt(targetPieces * aspect)))
-  let rows = Math.max(2, Math.round(targetPieces / cols))
-  // nudge toward target
-  while (cols * rows < targetPieces * 0.8) {
-    if (cols / rows < aspect) cols++
-    else rows++
-  }
-  return { cols, rows }
-}
+// Lives in plain ESM so the prerender step (scripts/seo-build.mjs, via
+// src/data/puzzleCopy.mjs) quotes exactly the grid the game will cut.
+export { fitGrid } from './fitGrid.mjs'
 
 /**
  * Fit a board of the image aspect ratio inside the available area, capped so

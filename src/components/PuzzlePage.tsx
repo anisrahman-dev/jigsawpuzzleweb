@@ -1,10 +1,12 @@
 // A single puzzle's own page: "<Image name> Jigsaw Puzzle" with the photo,
 // photographer credit, a difficulty picker and a Play button. Each image has
 // its own shareable, indexable URL (/puzzle/<category>/<id>/<name>-by-<author>).
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ALL_CATEGORIES } from '@/data/categories'
-import { findPuzzle, type GalleryPuzzle } from '@/data/gallery'
+import { findPuzzle, loadCategoryCatalog, type GalleryPuzzle } from '@/data/gallery'
 import { puzzleDescription } from '@/data/puzzleTitles.mjs'
+import { categoryContext, puzzleCopy } from '@/data/puzzleCopy.mjs'
+import { puzzleSlug } from '@/router'
 import { SITE, setCanonical, setMeta, resetHead } from '@/lib/seo'
 import { useUiStore } from '@/store/uiStore'
 import { DifficultyPicker } from './DifficultyPicker'
@@ -27,6 +29,30 @@ const ENTRY =
           document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.getAttribute('href') ??
           null,
       }
+
+const rawId = (p: GalleryPuzzle) => p.id.replace(/^[a-z]-/, '')
+const hrefFor = (p: GalleryPuzzle) =>
+  `/puzzle/${p.category}/${rawId(p)}/${puzzleSlug(p.slugTitle, p.author)}`
+
+/**
+ * The photo's siblings, for the per-photo copy and "similar puzzles" - the same
+ * catalogue the prerender used, so the hydrated text matches the static HTML.
+ */
+function useSiblings(puzzle: GalleryPuzzle | null): GalleryPuzzle[] | null {
+  const [list, setList] = useState<GalleryPuzzle[] | null>(null)
+  useEffect(() => {
+    if (!puzzle) return
+    let cancelled = false
+    setList(null)
+    loadCategoryCatalog(puzzle.category)
+      .then((l) => !cancelled && setList(l.some((p) => p.id === puzzle.id) ? l : [puzzle]))
+      .catch(() => !cancelled && setList([puzzle]))
+    return () => {
+      cancelled = true
+    }
+  }, [puzzle])
+  return list
+}
 
 export function PuzzlePage() {
   const puzzle = useUiStore((s) => s.detailPuzzle)
@@ -57,6 +83,17 @@ export function PuzzlePage() {
     ? ALL_CATEGORIES.find((c) => c.key === puzzle.category)
     : undefined
   const heading = `${name} Jigsaw Puzzle`
+
+  const siblings = useSiblings(puzzle ?? null)
+  const info = useMemo(() => {
+    if (!puzzle || !siblings) return null
+    const ctx = categoryContext(
+      siblings.map((p) => ({ id: rawId(p), tags: p.tags, author: p.author, w: p.width, h: p.height })),
+      siblings.map((p) => p.title),
+    )
+    const i = siblings.findIndex((p) => p.id === puzzle.id)
+    return { copy: puzzleCopy(ctx, Math.max(0, i), categoryNode?.label ?? null), siblings }
+  }, [puzzle, siblings, categoryNode])
 
   // SEO: unique <title> (subject + category) and a unique meta description built
   // from this image's own tags - so 32k pages don't share templated metadata.
@@ -167,6 +204,81 @@ export function PuzzlePage() {
           </button>
         </div>
       </div>
+
+      {info ? <PuzzleInfo copy={info.copy} siblings={info.siblings} /> : null}
+    </div>
+  )
+}
+
+function PuzzleInfo({
+  copy,
+  siblings,
+}: {
+  copy: ReturnType<typeof puzzleCopy>
+  siblings: GalleryPuzzle[]
+}) {
+  const open = (e: React.MouseEvent, p: GalleryPuzzle) => {
+    // Real <a href> so crawlers follow it; plain clicks stay in the SPA.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+    e.preventDefault()
+    useUiStore.getState().viewPuzzle(p)
+    window.scrollTo({ top: 0 })
+  }
+  return (
+    <div className="puzpg-info">
+      <section className="puzpg-sec">
+        <h2>{copy.headings.about}</h2>
+        <p>{copy.about}</p>
+        {copy.photographer ? <p>{copy.photographer}</p> : null}
+        <dl className="puzpg-facts">
+          {copy.facts.map((f) => (
+            <div key={f.k}>
+              <dt>{f.k}</dt>
+              <dd>{f.v}</dd>
+            </div>
+          ))}
+        </dl>
+        {copy.tags.length ? (
+          <ul className="puzpg-tags" aria-label="Tags">
+            {copy.tags.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
+
+      <section className="puzpg-sec">
+        <h2>{copy.headings.sizes}</h2>
+        <p>{copy.sizes}</p>
+      </section>
+
+      <section className="puzpg-sec">
+        <h2>{copy.headings.tips}</h2>
+        <ul>
+          {copy.tips.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+      </section>
+
+      {copy.similar.length ? (
+        <section className="puzpg-sec">
+          <h2>{copy.headings.similar}</h2>
+          <ul className="puzpg-similar">
+            {copy.similar.map((j) => {
+              const p = siblings[j]
+              return (
+                <li key={p.id}>
+                  <a href={hrefFor(p)} onClick={(e) => open(e, p)}>
+                    <img src={p.thumbUrl} alt={`${p.title} jigsaw puzzle`} loading="lazy" width={p.width} height={p.height} />
+                    <span>{p.title}</span>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ) : null}
     </div>
   )
 }

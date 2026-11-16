@@ -54,6 +54,11 @@ export function Footer() {
             <Icon name="grid" size={16} />
             Categories
           </a>
+          {/* Static page outside the SPA - a full page load is intended. */}
+          <a href="/blog" className="footer-link">
+            <Icon name="puzzle" size={16} />
+            Blog
+          </a>
           <button
             type="button"
             className="footer-link"
