@@ -7,6 +7,14 @@ import { findPuzzle, loadCategoryCatalog, type GalleryPuzzle } from '@/data/gall
 import { puzzleDescription } from '@/data/puzzleTitles.mjs'
 import { categoryContext, puzzleCopy } from '@/data/puzzleCopy.mjs'
 import { puzzleSlug } from '@/router'
+import {
+  FEATURED_LINKS,
+  FEATURED_PUZZLES,
+  featuredFor,
+  featuredPath,
+  type FeaturedPuzzle,
+} from '@/data/featuredPuzzles.mjs'
+import { DIFFICULTIES } from '@/engine/grid'
 import { SITE, setCanonical, setMeta, resetHead } from '@/lib/seo'
 import { useUiStore } from '@/store/uiStore'
 import { DifficultyPicker } from './DifficultyPicker'
@@ -82,7 +90,15 @@ export function PuzzlePage() {
   const categoryNode = puzzle
     ? ALL_CATEGORIES.find((c) => c.key === puzzle.category)
     : undefined
-  const heading = `${name} Jigsaw Puzzle`
+  // Hand-written page for this photo, if it has one (src/data/featuredPuzzles.mjs).
+  const featured = puzzle ? featuredFor(puzzle.category, rawId(puzzle)) : undefined
+  const heading = featured?.h1 ?? `${name} Jigsaw Puzzle`
+
+  // Pre-select the piece count the hand-written page recommends.
+  useEffect(() => {
+    const preset = featured && DIFFICULTIES.find((d) => d.pieces === featured.recommended.pieces)
+    if (preset) useUiStore.getState().setDifficulty(preset.key)
+  }, [featured])
 
   const siblings = useSiblings(puzzle ?? null)
   const info = useMemo(() => {
@@ -102,6 +118,12 @@ export function PuzzlePage() {
       document.title = SITE
       return
     }
+    if (featured) {
+      document.title = featured.title
+      setMeta('description', featured.description)
+      setCanonical(featuredPath(featured))
+      return resetHead
+    }
     const catBit = categoryNode ? ` ${categoryNode.label}` : ''
     document.title = `${heading} - Free${catBit} Puzzle Online | ${SITE}`
     setMeta('description', puzzleDescription(name, puzzle.tags, puzzle.author))
@@ -112,7 +134,7 @@ export function PuzzlePage() {
       setCanonical(ENTRY?.path === path && ENTRY.canonical ? ENTRY.canonical : path)
     }
     return resetHead
-  }, [puzzle, name, categoryNode, heading, route])
+  }, [puzzle, name, categoryNode, heading, route, featured])
 
   if (notFound) {
     return (
@@ -152,7 +174,7 @@ export function PuzzlePage() {
         <span className="puzpg-sep" aria-hidden="true">
           /
         </span>
-        {categoryNode ? (
+        {categoryNode && !featured ? (
           <>
             <button
               type="button"
@@ -166,15 +188,15 @@ export function PuzzlePage() {
             </span>
           </>
         ) : null}
-        <span className="puzpg-crumb is-current">{name}</span>
+        <span className="puzpg-crumb is-current">{featured ? heading : name}</span>
       </nav>
 
-      <div className="puzpg-grid">
+      <div className={`puzpg-grid${featured ? ' puzpg-grid--featured' : ''}`}>
         <figure className="puzpg-figure">
           <img
             className="puzpg-img"
             src={puzzle.url}
-            alt={`${heading} - free online jigsaw puzzle photo`}
+            alt={featured?.alt ?? `${heading} - free online jigsaw puzzle photo`}
             width={puzzle.width}
             height={puzzle.height}
           />
@@ -182,7 +204,7 @@ export function PuzzlePage() {
 
         <div className="puzpg-panel">
           <h1 className="puzpg-title">{heading}</h1>
-          {puzzle.author ? (
+          {puzzle.author && !featured ? (
             <p className="puzpg-credit">
               Photo by{' '}
               <a href="https://pixabay.com" target="_blank" rel="noreferrer">
@@ -192,20 +214,36 @@ export function PuzzlePage() {
             </p>
           ) : null}
 
-          <p className="puzpg-lead">
-            Choose your difficulty and start solving - drag the pieces, watch them snap together,
-            and relax at your own pace.
-          </p>
+          {/* Hand-written pages put the intro under the photo instead (see below). */}
+          {featured ? null : (
+            <p className="puzpg-lead">
+              Choose your difficulty and start solving - drag the pieces, watch them snap together,
+              and relax at your own pace.
+            </p>
+          )}
 
           <DifficultyPicker />
 
           <button type="button" className="btn btn--primary btn--lg puzpg-play" onClick={play}>
             <Icon name="play" size={18} /> Play puzzle
           </button>
+
+          {featured ? (
+            <p className="puzpg-recommend">
+              <strong>Recommended: {featured.recommended.pieces} pieces.</strong>{' '}
+              {featured.recommended.why}
+            </p>
+          ) : null}
         </div>
+
+        {featured ? <p className="puzpg-lead puzpg-intro">{featured.lead}</p> : null}
       </div>
 
-      {info ? <PuzzleInfo copy={info.copy} siblings={info.siblings} /> : null}
+      {featured ? (
+        <FeaturedInfo featured={featured} onPlay={play} />
+      ) : info ? (
+        <PuzzleInfo copy={info.copy} siblings={info.siblings} />
+      ) : null}
     </div>
   )
 }
@@ -279,6 +317,77 @@ function PuzzleInfo({
           </ul>
         </section>
       ) : null}
+    </div>
+  )
+}
+
+/** Hand-written sections, FAQ and links to the other hand-written puzzles. */
+function FeaturedInfo({ featured, onPlay }: { featured: FeaturedPuzzle; onPlay: () => void }) {
+  const others = FEATURED_PUZZLES.filter((f) => f !== featured)
+  const go = (e: React.MouseEvent, f: FeaturedPuzzle) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+    e.preventDefault()
+    useUiStore.getState().applyRoute('puzzle', null, null, 1, {
+      category: f.category,
+      id: f.id,
+      slug: f.slug,
+    })
+    window.scrollTo({ top: 0 })
+  }
+  return (
+    <div className="puzpg-info">
+      {featured.sections.map((sec) => (
+        <section className="puzpg-sec" key={sec.heading}>
+          <h2>{sec.heading}</h2>
+          {sec.paras?.map((t) => (
+            <p key={t}>{t}</p>
+          ))}
+          {sec.items ? (
+            <ul className="puzpg-list">
+              {sec.items.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ))}
+
+      <section className="puzpg-sec">
+        <h2>Frequently asked questions</h2>
+        <dl className="puzpg-faq">
+          {featured.faq.map((f) => (
+            <div key={f.q}>
+              <dt>{f.q}</dt>
+              <dd>{f.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <div className="puzpg-cta">
+        <p>Ready? Play the {featured.h1.toLowerCase()} now - free, no sign-up.</p>
+        <button type="button" className="btn btn--primary btn--lg" onClick={onPlay}>
+          <Icon name="play" size={18} /> Play puzzle
+        </button>
+      </div>
+
+      <section className="puzpg-sec">
+        <h2>More free jigsaw puzzles</h2>
+        <ul className="puzpg-more">
+          {others.map((f) => (
+            <li key={f.slug}>
+              <a href={featuredPath(f)} onClick={(e) => go(e, f)}>
+                {f.h1}
+              </a>
+            </li>
+          ))}
+          {FEATURED_LINKS.map((l) => (
+            <li key={l.href}>
+              <a href={l.href}>{l.label}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   )
 }

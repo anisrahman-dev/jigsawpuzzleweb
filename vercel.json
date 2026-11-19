@@ -1,4 +1,126 @@
 {
   "cleanUrls": true,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "redirects": [
+    {
+      "source": "/puzzle/christmas/4705885/christmas-market-by-chriswanders",
+      "destination": "/christmas/christmas-market-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/christmas/6796079/gingerbread-house-by-flutie8211",
+      "destination": "/christmas/gingerbread-house-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/christmas/3584366/nutcracker-by-linmarie5",
+      "destination": "/christmas/nutcracker-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/christmas/1882635/snowman-by-couleur",
+      "destination": "/christmas/snowman-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/christmas/7590151/santa-claus-by-edyttka1388",
+      "destination": "/christmas/santa-claus-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/trains/4362166/train-by-sklorg",
+      "destination": "/trains/steam-train-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/dogs/7991199/dog-by-jaclou-dl",
+      "destination": "/dogs/dog-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/funny/7991199/dog-by-jaclou-dl",
+      "destination": "/dogs/dog-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/fish/5975834/fish-by-mjimages",
+      "destination": "/fish/clownfish-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/castles/532850/fairytale-by-derwiki",
+      "destination": "/castles/neuschwanstein-castle-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/farms/532850/fairytale-by-derwiki",
+      "destination": "/castles/neuschwanstein-castle-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/flowers/1719119/sunflowers-by-jillwellington",
+      "destination": "/flowers/sunflower-jigsaw-puzzle",
+      "permanent": true
+    },
+    {
+      "source": "/puzzle/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/:slug([a-z0-9-]+-online-free-jigsaw-puzzles)",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/categories",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/event/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/daily-jigsaw-puzzle",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/search",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/blog",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/300-piece-jigsaw-puzzles",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/jigsaw-puzzles-for-adults",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/jigsaw-puzzles-for-kids",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

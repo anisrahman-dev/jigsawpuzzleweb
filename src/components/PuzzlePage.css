@@ -88,6 +88,76 @@
   margin-top: 22px;
   width: 100%;
 }
+.puzpg-recommend {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--accent-softer);
+  color: var(--text-muted);
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+.puzpg-recommend strong {
+  color: var(--text);
+}
+.puzpg-faq {
+  margin: 0;
+}
+.puzpg-faq > div {
+  padding: 12px 0;
+  border-top: 1px solid var(--surface-3);
+}
+.puzpg-faq dt {
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.puzpg-faq dd {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.puzpg-more a {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+.puzpg-list li + li {
+  margin-top: 8px;
+}
+.puzpg-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: var(--r-md);
+  background: var(--accent-softer);
+}
+.puzpg-cta p {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+@media (max-width: 600px) {
+  .puzpg-info {
+    margin-top: 32px;
+    gap: 24px;
+  }
+  .puzpg-sec h2 {
+    font-size: 1.2rem;
+  }
+  .puzpg-recommend {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+  }
+  .puzpg-cta {
+    padding: 16px;
+  }
+  .puzpg-cta .btn {
+    width: 100%;
+  }
+}
 
 .puzpg-state {
   display: flex;
@@ -222,4 +292,66 @@
   margin-top: 6px;
   font-size: 0.9rem;
   color: var(--text);
+}
+
+/* ── Hand-written puzzle pages (src/data/featuredPuzzles.mjs) ─────────────
+   Kept last and scoped under .puzpg so no generic rule above can override it.
+   One spacing scale: 16px between the controls, 20px around the photo.
+   Desktop: photo with the intro under it | title, difficulty, Play, tip.
+   Mobile:  title, photo, difficulty, Play, tip, intro - one column. */
+.puzpg .puzpg-grid--featured {
+  grid-template-areas:
+    'figure panel'
+    'intro panel';
+  row-gap: 20px;
+}
+.puzpg .puzpg-grid--featured .puzpg-figure {
+  grid-area: figure;
+}
+.puzpg .puzpg-grid--featured .puzpg-panel {
+  grid-area: panel;
+}
+.puzpg .puzpg-grid--featured .puzpg-intro {
+  grid-area: intro;
+  margin: 0;
+  font-size: 1.05rem;
+}
+.puzpg .puzpg-grid--featured .puzpg-title {
+  margin: 0 0 16px;
+}
+.puzpg .puzpg-grid--featured .puzpg-play {
+  margin: 16px 0;
+}
+.puzpg .puzpg-grid--featured .puzpg-recommend {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .puzpg .puzpg-grid--featured {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  /* The panel's children join the column so the title can sit above the photo. */
+  .puzpg .puzpg-grid--featured .puzpg-panel {
+    display: contents;
+  }
+  .puzpg .puzpg-grid--featured .puzpg-panel > * {
+    order: 3;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .puzpg .puzpg-grid--featured .puzpg-panel > .puzpg-title {
+    order: 1;
+    margin: 0 0 14px;
+  }
+  .puzpg .puzpg-grid--featured .puzpg-figure {
+    order: 2;
+    margin: 0 0 20px;
+  }
+  .puzpg .puzpg-grid--featured .puzpg-intro {
+    order: 4;
+    margin-top: 20px;
+  }
 }

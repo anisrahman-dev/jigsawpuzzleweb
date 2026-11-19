@@ -2,12 +2,13 @@
 // The image is turned into a PuzzleImage locally (object URL, never uploaded)
 // and handed to the existing preview → difficulty → play flow.
 import { useEffect, useRef, useState } from 'react'
-import { ALL_CATEGORIES, categorySlug } from '@/data/categories'
 import { landingByKey } from '@/data/landings'
 import { useUiStore } from '@/store/uiStore'
 import type { PuzzleImage } from '@/types'
 import { Icon } from '@/components/Icon'
 import { applyLandingHead } from './landingSeo'
+import { FEATURED_PUZZLES } from '@/data/featuredPuzzles.mjs'
+import { FeaturedGrid } from './FeaturedGrid'
 import './GalleryHome.css'
 import './CustomPuzzlePage.css'
 
@@ -25,10 +26,6 @@ export function CustomPuzzlePage() {
   }, [landing])
 
   if (!landing) return null
-
-  const cats = landing.categoryKeys
-    .map((k) => ALL_CATEGORIES.find((c) => c.key === k))
-    .filter((c): c is NonNullable<typeof c> => Boolean(c))
 
   function handleFile(file: File | undefined | null) {
     setError(null)
@@ -122,32 +119,7 @@ export function CustomPuzzlePage() {
         ))}
 
         <h2 className="section-title">No photo handy? Play a ready-made puzzle</h2>
-        <ul className="ghome-toplinks">
-          {cats.map((c) => (
-            <li key={c.key}>
-              <a
-                href={`/${categorySlug(c.label)}`}
-                onClick={(e) => {
-                  e.preventDefault()
-                  useUiStore.getState().browseCategory(c)
-                }}
-              >
-                {c.label} puzzles
-              </a>
-            </li>
-          ))}
-          <li>
-            <a
-              href="/categories"
-              onClick={(e) => {
-                e.preventDefault()
-                useUiStore.getState().showCategories()
-              }}
-            >
-              All categories
-            </a>
-          </li>
-        </ul>
+        <FeaturedGrid items={FEATURED_PUZZLES} />
 
         <h2 className="section-title ghome-faq-title">Frequently asked questions</h2>
         <dl className="ghome-faq">

@@ -19,7 +19,6 @@ export function Header() {
   const avatarId = useProfileStore((s) => s.avatarId)
 
   const goHome = (): void => useUiStore.getState().goHome()
-  const showCategories = (): void => useUiStore.getState().showCategories()
   const openProfile = (): void => useUiStore.getState().openProfile()
   const cycleTextSize = (): void => usePrefsStore.getState().cycleTextSize()
 
@@ -45,16 +44,6 @@ export function Header() {
           </span>
 
           <span className="header-divider" aria-hidden="true" />
-
-          <button
-            type="button"
-            className="btn btn--ghost header-action"
-            onClick={showCategories}
-            aria-label="Categories"
-          >
-            <Icon name="grid" size={18} />
-            <span className="header-action-label">Categories</span>
-          </button>
 
           <button
             type="button"

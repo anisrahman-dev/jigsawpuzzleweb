@@ -1,22 +1,22 @@
-// Generic SEO landing page (piece-count + audience pages). Content comes from
-// src/data/landings.json via the store's landingKey. Piece-count / audience
-// pages pre-select their difficulty preset so the next puzzle opens at it.
-import { useEffect, useState } from 'react'
-import { ALL_CATEGORIES, categorySlug } from '@/data/categories'
+// Audience landing page (currently /jigsaw-puzzles-for-seniors). Content comes
+// from src/data/landings.json via the store's landingKey; the puzzles shown are
+// the hand-written puzzle pages, easiest (fewest recommended pieces) first.
+import { useEffect } from 'react'
 import { landingByKey } from '@/data/landings'
-import { loadCategoryCatalog, type GalleryPuzzle } from '@/data/gallery'
+import { FEATURED_PUZZLES } from '@/data/featuredPuzzles.mjs'
 import { useUiStore } from '@/store/uiStore'
 import { applyLandingHead } from './landingSeo'
-import { CategoryTiles } from './CategoryTiles'
-import { PuzzleCard } from './PuzzleCard'
+import { FeaturedGrid } from './FeaturedGrid'
 import './GalleryHome.css'
+
+/** Gentlest puzzles first; ties keep their original order. */
+const EASIEST_FIRST = [...FEATURED_PUZZLES].sort(
+  (a, b) => a.recommended.pieces - b.recommended.pieces,
+)
 
 export function LandingPage() {
   const landingKey = useUiStore((s) => s.landingKey)
   const landing = landingKey ? landingByKey(landingKey) : null
-  // Optional curated puzzle grid from public/catalog/<landingKey>.json. Pages
-  // without a catalogue file simply render no grid.
-  const [puzzles, setPuzzles] = useState<GalleryPuzzle[]>([])
 
   useEffect(() => {
     if (!landing) return
@@ -25,25 +25,7 @@ export function LandingPage() {
     return cleanup
   }, [landing])
 
-  useEffect(() => {
-    if (!landingKey) return
-    let cancelled = false
-    setPuzzles([])
-    loadCategoryCatalog(landingKey)
-      .then((list) => !cancelled && setPuzzles(list))
-      .catch(() => {
-        /* no curated catalogue for this landing - render no grid */
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [landingKey])
-
   if (!landing) return null
-
-  const cats = landing.categoryKeys
-    .map((k) => ALL_CATEGORIES.find((c) => c.key === k))
-    .filter((c): c is NonNullable<typeof c> => Boolean(c))
 
   return (
     <div className="gallery">
@@ -65,47 +47,8 @@ export function LandingPage() {
           </p>
         ))}
 
-        {puzzles.length > 0 && (
-          <div className="puzzle-grid landing-puzzles">
-            {puzzles.map((p) => (
-              <PuzzleCard key={p.id} puzzle={p} linked />
-            ))}
-          </div>
-        )}
-
-        {cats.length > 0 && (
-          <CategoryTiles
-            items={cats}
-            onSelect={(node) => useUiStore.getState().browseCategory(node)}
-          />
-        )}
-
-        <ul className="ghome-toplinks">
-          {cats.map((c) => (
-            <li key={c.key}>
-              <a
-                href={`/${categorySlug(c.label)}`}
-                onClick={(e) => {
-                  e.preventDefault()
-                  useUiStore.getState().browseCategory(c)
-                }}
-              >
-                {c.label} puzzles
-              </a>
-            </li>
-          ))}
-          <li>
-            <a
-              href="/categories"
-              onClick={(e) => {
-                e.preventDefault()
-                useUiStore.getState().showCategories()
-              }}
-            >
-              All categories
-            </a>
-          </li>
-        </ul>
+        <h2 className="section-title ghome-faq-title">Pick a puzzle</h2>
+        <FeaturedGrid items={EASIEST_FIRST} />
 
         <h2 className="section-title ghome-faq-title">Frequently asked questions</h2>
         <dl className="ghome-faq">

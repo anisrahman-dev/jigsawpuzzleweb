@@ -1,8 +1,9 @@
 // Tiny URL <-> app-state router (no dependency). Maps the History API path to a
 // view + selected category/event, and back. Pure functions - no store import.
-import { categoryBySlug, categorySlug, type CategoryNode } from '@/data/categories'
-import { eventByKey, type PuzzleEvent } from '@/data/events'
+import { categorySlug, type CategoryNode } from '@/data/categories'
+import type { PuzzleEvent } from '@/data/events'
 import { LANDING_KEYS } from '@/data/landings'
+import { featuredByPath, featuredFor, featuredPath } from '@/data/featuredPuzzles.mjs'
 import type { View } from '@/store/uiStore'
 
 /** URL path for the custom-puzzle-maker landing page. */
@@ -59,8 +60,12 @@ export function urlForRoute(
   puzzle: PuzzleRef | null = null,
   landing: string | null = null,
 ): string {
-  if (view === 'puzzle' && puzzle)
+  if (view === 'puzzle' && puzzle) {
+    // Hand-written puzzle pages live at a short /<category>/<slug> URL.
+    const f = featuredFor(puzzle.category, puzzle.id)
+    if (f) return featuredPath(f)
     return `/puzzle/${puzzle.category}/${puzzle.id}/${puzzle.slug}`
+  }
   if (view === 'event' && event) return '/event/' + event.key
   if (view === 'daily') return '/daily-jigsaw-puzzle'
   if (view === 'custom') return '/' + CUSTOM_KEY
@@ -80,49 +85,20 @@ export function parseRoute(): Route {
   const none = { category: null, event: null, page: 1, puzzle: null, landing: null }
   if (typeof window === 'undefined') return { view: 'home', ...none }
   const path = window.location.pathname
-  const pageParam = Number(new URLSearchParams(window.location.search).get('page'))
-  const page = Number.isInteger(pageParam) && pageParam > 1 ? pageParam : 1
   if (path === '/' || path === '') return { view: 'home', ...none }
-  if (path === '/categories') return { view: 'categories', ...none }
-  if (path === '/daily-jigsaw-puzzle') return { view: 'daily', ...none }
-  if (path === '/' + CUSTOM_KEY) return { view: 'custom', ...none, landing: CUSTOM_KEY }
+  // The site is now the home page, the hand-written puzzle pages, the seniors
+  // page and the custom puzzle maker. Categories, events, search, the daily
+  // puzzle and the generated /puzzle/... pages were removed (the host
+  // 301-redirects their URLs to "/"), so anything else lands on home.
   if (path === '/play') return { view: 'play', ...none }
-  if (path.startsWith('/puzzle/')) {
-    const parts = path.split('/').filter(Boolean) // ['puzzle', category, id, ...slug]
-    if (parts.length >= 3) {
-      const puzzle = {
-        category: decodeURIComponent(parts[1]),
-        id: decodeURIComponent(parts[2]),
-        slug: parts.slice(3).map(decodeURIComponent).join('/'),
-      }
-      return { view: 'puzzle', category: null, event: null, page: 1, puzzle, landing: null }
-    }
-    return { view: 'home', ...none }
-  }
-  if (path.startsWith('/event/')) {
-    const key = decodeURIComponent(path.slice('/event/'.length))
-    const event = eventByKey(key)
-    if (event) return { view: 'event', category: null, event, page: 1, puzzle: null, landing: null }
-    return { view: 'home', ...none }
-  }
-  if (path === '/search') {
-    const q = new URLSearchParams(window.location.search).get('q')?.trim()
-    if (q)
-      return {
-        view: 'category',
-        category: { key: 'search', label: q, query: q },
-        event: null,
-        page,
-        puzzle: null,
-        landing: null,
-      }
-    return { view: 'home', ...none }
+  const featured = featuredByPath(path)
+  if (featured) {
+    const puzzle = { category: featured.category, id: featured.id, slug: featured.slug }
+    return { view: 'puzzle', category: null, event: null, page: 1, puzzle, landing: null }
   }
   const slug = decodeURIComponent(path.replace(/^\/+|\/+$/g, ''))
   if (LANDING_KEYS.has(slug))
     return { view: slug === CUSTOM_KEY ? 'custom' : 'landing', ...none, landing: slug }
-  const node = categoryBySlug(slug)
-  if (node) return { view: 'category', category: node, event: null, page, puzzle: null, landing: null }
   return { view: 'home', ...none }
 }
 

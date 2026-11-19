@@ -46,7 +46,7 @@ export function DifficultyPicker() {
   return (
     <div className="diffpick">
       <div className="diffpick-label" id="diffpick-label">
-        Difficulty
+        Difficulty <span className="diffpick-hint">(pieces)</span>
       </div>
       <div className="diffpick-grid" role="radiogroup" aria-labelledby="diffpick-label">
         {DIFFICULTIES.map((preset, index) => {
@@ -75,7 +75,9 @@ export function DifficultyPicker() {
                 </svg>
               </span>
               <span className="diffpick-name">{preset.label}</span>
-              <span className="diffpick-count">~{preset.pieces} pieces</span>
+              <span className="diffpick-count" aria-label={`${preset.pieces} pieces`}>
+                {preset.pieces}
+              </span>
             </button>
           )
         })}

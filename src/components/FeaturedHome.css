@@ -1,0 +1,345 @@
+/* Home page built around the 10 hand-written puzzle pages. */
+
+.fhome {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 28px 20px 72px;
+}
+
+.fhome-eyebrow {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  margin-bottom: 6px;
+}
+
+/* ── Intro ─────────────────────────────────────────────────────────────── */
+.fhome-intro {
+  max-width: 68ch;
+  margin-bottom: 28px;
+}
+.fhome-intro h1 {
+  font-size: 2.6rem;
+  line-height: 1.08;
+  margin: 0 0 12px;
+}
+.fhome-intro p {
+  margin: 0;
+  font-size: 1.12rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+.fhome-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 32px;
+  padding: 16px;
+  border-radius: var(--r-xl);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-md);
+}
+.fhome-hero-media {
+  display: block;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.fhome-hero-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  transition: transform var(--dur-slow) var(--ease);
+}
+.fhome-hero-media:hover img {
+  transform: scale(1.03);
+}
+.fhome-hero-body {
+  padding: 8px 16px 8px 0;
+}
+.fhome-hero-body h2 {
+  font-size: 2rem;
+  line-height: 1.12;
+  margin: 0 0 12px;
+}
+.fhome-hero-body p {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+.fhome-hero-meta {
+  font-size: 0.92rem !important;
+  font-weight: 600;
+}
+.fhome-hero-btn {
+  margin-top: 8px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  text-decoration: none;
+}
+
+/* ── Sections ──────────────────────────────────────────────────────────── */
+.fhome-section {
+  margin-top: 56px;
+}
+.fhome-head {
+  margin-bottom: 18px;
+}
+.fhome-section h2 {
+  font-size: 1.7rem;
+  line-height: 1.15;
+  margin: 0;
+}
+
+/* ── Puzzle cards ──────────────────────────────────────────────────────── */
+.fhome-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 22px;
+}
+.fhome-card a {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface-1);
+  box-shadow: var(--shadow-sm);
+  color: inherit;
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.fhome-card a:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+.fhome-card a:focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+.fhome-card-media {
+  position: relative;
+  background: var(--surface-2);
+}
+.fhome-card-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+.fhome-badge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(15, 20, 30, 0.72);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+.fhome-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 16px 18px 18px;
+}
+.fhome-card-body h3 {
+  font-size: 1.15rem;
+  line-height: 1.25;
+  margin: 0 0 6px;
+}
+.fhome-card-body p {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.fhome-card-cta {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--accent-strong);
+}
+
+/* 5 cards: two large on top, three below - no orphan card. */
+.fhome-grid--more {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.fhome-grid--more > li {
+  grid-column: span 2;
+}
+.fhome-grid--more > li:nth-child(-n + 2) {
+  grid-column: span 3;
+}
+.fhome-grid--more > li:nth-child(-n + 2) .fhome-card-body h3 {
+  font-size: 1.35rem;
+}
+
+/* ── More ways to play ─────────────────────────────────────────────────── */
+.fhome-ways {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.fhome-ways a {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  padding: 18px 20px;
+  border-radius: var(--r-lg);
+  background: var(--accent-softer);
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease);
+}
+.fhome-ways a:hover {
+  background: var(--accent-soft);
+}
+.fhome-ways strong {
+  color: var(--accent-deep);
+  font-size: 1.05rem;
+}
+.fhome-ways span {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* ── About + FAQ ───────────────────────────────────────────────────────── */
+.fhome-about {
+  max-width: 75ch;
+}
+.fhome-about h2 {
+  margin-bottom: 12px;
+}
+.fhome-about p {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+.fhome-faq {
+  margin: 14px 0 0;
+  max-width: 75ch;
+}
+.fhome-faq > div {
+  padding: 14px 0;
+  border-top: 1px solid var(--surface-3);
+}
+.fhome-faq dt {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.fhome-faq dd {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── Tablet ────────────────────────────────────────────────────────────── */
+@media (max-width: 820px) {
+  .fhome-hero {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 12px;
+  }
+  .fhome-hero-body {
+    padding: 0 8px 8px;
+  }
+}
+
+/* ── Phone ─────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .fhome {
+    padding: 20px 14px 56px;
+  }
+  .fhome-intro {
+    margin-bottom: 20px;
+  }
+  .fhome-intro h1 {
+    font-size: 1.85rem;
+  }
+  .fhome-intro p {
+    font-size: 1rem;
+  }
+  .fhome-hero-body h2 {
+    font-size: 1.5rem;
+  }
+  .fhome-hero-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .fhome-section {
+    margin-top: 40px;
+  }
+  .fhome-section h2 {
+    font-size: 1.4rem;
+  }
+  .fhome-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .fhome-card-body {
+    padding: 12px 12px 14px;
+  }
+  .fhome-card-body h3 {
+    font-size: 0.98rem;
+  }
+  .fhome-card-body p {
+    display: none;
+  }
+  /* Phone: first card full width, then a tidy 2 x 2. */
+  .fhome-grid--more {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fhome-grid--more > li,
+  .fhome-grid--more > li:nth-child(-n + 2) {
+    grid-column: span 1;
+  }
+  .fhome-grid--more > li:first-child {
+    grid-column: span 2;
+  }
+  .fhome-grid--more > li:nth-child(2) .fhome-card-body h3 {
+    font-size: 0.98rem;
+  }
+  .fhome-grid--more > li:first-child .fhome-card-body p {
+    display: block;
+  }
+  .fhome-badge {
+    left: 8px;
+    bottom: 8px;
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fhome-card a,
+  .fhome-hero-media img {
+    transition: none;
+  }
+  .fhome-card a:hover {
+    transform: none;
+  }
+}

@@ -17,6 +17,7 @@ import { categoryContext, puzzleCopy } from '../src/data/puzzleCopy.mjs'
 import { POSTS } from './blog-posts.mjs'
 import { categoryCopy } from '../src/data/categoryCopy.mjs'
 import { categoryEditorial, featuredFirst } from '../src/data/categoryEditorial.mjs'
+import { FEATURED_PUZZLES, FEATURED_LINKS, featuredBlurb, featuredFor, featuredPath } from '../src/data/featuredPuzzles.mjs'
 import {
   categoryKeyword,
   categoryKeywordInline,
@@ -49,6 +50,12 @@ const RICH_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1'
 // NOINDEX_PUZZLES=1 to go back to noindex + no puzzle sitemap (the July 2026
 // crawl-budget setting) if the set stalls in "Discovered - not indexed" again.
 const NOINDEX_PUZZLES = process.env.NOINDEX_PUZZLES === '1'
+// November 2026: the site was cut back to the home page, the 10 hand-written
+// puzzle pages (src/data/featuredPuzzles.mjs), the seniors page and the custom
+// puzzle maker. The 74 category pages, ~33k generated puzzle pages, /categories,
+// events, the daily puzzle and the blog are no longer built - vercel.json
+// 301-redirects their URLs to "/". Set LEGACY_PAGES=1 to build them again.
+const LEGACY_PAGES = process.env.LEGACY_PAGES === '1'
 const PUZZLE_ROBOTS = NOINDEX_PUZZLES ? 'noindex,follow' : RICH_ROBOTS
 
 // ── helpers ──────────────────────────────────────────────────────────────
@@ -145,7 +152,9 @@ function prerenderWrap(body) {
   return `<style>${PRERENDER_CSS}</style><div data-prerender>${body}</div>`
 }
 
-function buildHtml(template, { title, description, canonicalPath, prev, next, jsonld, body, robots }) {
+function buildHtml(template, { title, description, canonicalPath, prev, next, jsonld, body, robots, ogImage, ogImageAlt }) {
+  // A page-specific photo makes a far better share preview than the logo.
+  const shareImage = ogImage || abs(OG_IMAGE)
   const head = [
     `    <title>${escHtml(title)}</title>`,
     `    <meta name="description" content="${escAttr(description)}" />`,
@@ -157,9 +166,12 @@ function buildHtml(template, { title, description, canonicalPath, prev, next, js
     `    <meta property="og:description" content="${escAttr(description)}" />`,
     `    <meta property="og:type" content="website" />`,
     `    <meta property="og:url" content="${escAttr(abs(canonicalPath))}" />`,
-    `    <meta property="og:image" content="${escAttr(abs(OG_IMAGE))}" />`,
-    `    <meta name="twitter:card" content="summary" />`,
-    `    <meta name="twitter:image" content="${escAttr(abs(OG_IMAGE))}" />`,
+    `    <meta property="og:image" content="${escAttr(shareImage)}" />`,
+    ogImageAlt ? `    <meta property="og:image:alt" content="${escAttr(ogImageAlt)}" />` : '',
+    `    <meta name="twitter:card" content="${ogImage ? 'summary_large_image' : 'summary'}" />`,
+    `    <meta name="twitter:title" content="${escAttr(title)}" />`,
+    `    <meta name="twitter:description" content="${escAttr(description)}" />`,
+    `    <meta name="twitter:image" content="${escAttr(shareImage)}" />`,
     ...jsonld.map((o) => `    <script type="application/ld+json">${ldSafe(o)}</script>`),
   ]
     .filter(Boolean)
@@ -432,6 +444,114 @@ function puzzleJsonLd(label, catKey, im, name, canonical, copy) {
   ]
 }
 
+// ── Hand-written single-puzzle pages (src/data/featuredPuzzles.mjs) ─────────
+async function buildFeatured(template, puzzleSitemap) {
+  // Each page's old generated URL must 301 here, or Google keeps both.
+  const vercel = JSON.parse(await fs.readFile(path.join(ROOT, 'vercel.json'), 'utf8'))
+  const redirects = new Map((vercel.redirects || []).map((r) => [r.source, r.destination]))
+
+  for (const f of FEATURED_PUZZLES) {
+    const images = JSON.parse(await fs.readFile(path.join(CATALOG, `${f.category}.json`), 'utf8')).images
+    const im = images.find((x) => x.id === f.id)
+    if (!im) throw new Error(`featured puzzle ${f.category}/${f.id} is not in its catalogue`)
+    const route = featuredPath(f)
+    const old = puzzlePath(f.category, im)
+    if (redirects.get(old) !== route) {
+      throw new Error(`vercel.json needs a redirect: { "source": "${old}", "destination": "${route}", "permanent": true }`)
+    }
+
+    const others = FEATURED_PUZZLES.filter((o) => o !== f)
+    const body =
+      `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <span>${escHtml(f.h1)}</span></nav>` +
+      `<h1>${escHtml(f.h1)}</h1>` +
+      `<img src="${escAttr(im.url)}" width="${im.w}" height="${im.h}" alt="${escAttr(f.alt)}" fetchpriority="high" />` +
+      `<p>${escHtml(f.lead)}</p>` +
+      `<p><strong>Recommended: ${f.recommended.pieces} pieces.</strong> ${escHtml(f.recommended.why)}</p>` +
+      f.sections
+        .map(
+          (sec) =>
+            `<section><h2>${escHtml(sec.heading)}</h2>` +
+            (sec.paras || []).map((t) => `<p>${escHtml(t)}</p>`).join('') +
+            (sec.items ? `<ul>${sec.items.map((t) => `<li>${escHtml(t)}</li>`).join('')}</ul>` : '') +
+            `</section>`,
+        )
+        .join('') +
+      `<section><h2>Frequently asked questions</h2>${f.faq
+        .map((q) => `<div class="faq-item"><h3>${escHtml(q.q)}</h3><p>${escHtml(q.a)}</p></div>`)
+        .join('')}</section>` +
+      `<section><h2>More free jigsaw puzzles</h2><ul>${[
+        ...others.map((o) => ({ href: featuredPath(o), label: o.h1 })),
+        ...FEATURED_LINKS,
+      ]
+        .map((l) => `<li><a href="${escAttr(l.href)}">${escHtml(l.label)}</a></li>`)
+        .join('')}</ul></section>` +
+      `</main>`
+
+    const jsonld = [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        '@id': abs(route),
+        url: abs(route),
+        name: f.title,
+        description: f.description,
+        inLanguage: 'en',
+        datePublished: f.published,
+        dateModified: f.updated,
+        primaryImageOfPage: { '@type': 'ImageObject', contentUrl: im.url },
+        isPartOf: { '@type': 'WebSite', name: SITE, url: abs('/') },
+      },
+      breadcrumbLd([
+        { name: 'Home', path: '/' },
+        { name: f.h1, path: route },
+      ]),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ImageObject',
+        name: f.h1,
+        description: f.description,
+        contentUrl: im.url,
+        thumbnailUrl: im.thumb,
+        width: im.w,
+        height: im.h,
+        caption: f.alt,
+        creditText: `${im.author} on Pixabay`,
+        creator: { '@type': 'Person', name: im.author },
+        license: 'https://pixabay.com/service/license-summary/',
+        acquireLicensePage: `https://pixabay.com/photos/id-${im.id}/`,
+        isPartOf: { '@type': 'WebPage', url: abs(route) },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: f.faq.map((q) => ({
+          '@type': 'Question',
+          name: q.q,
+          acceptedAnswer: { '@type': 'Answer', text: q.a },
+        })),
+      },
+    ]
+
+    await writePretty(
+      route,
+      buildHtml(template, {
+        title: f.title,
+        description: f.description,
+        canonicalPath: route,
+        prev: null,
+        next: null,
+        robots: RICH_ROBOTS,
+        jsonld,
+        body,
+        ogImage: im.url,
+        ogImageAlt: f.alt,
+      }),
+    )
+    puzzleSitemap.push({ loc: abs(route), priority: '0.9', lastmod: f.updated, image: { loc: im.url, title: f.h1 } })
+  }
+  return FEATURED_PUZZLES.length
+}
+
 // ── sitemap helpers ──────────────────────────────────────────────────────
 function puzzleSitemapEntry(route, im, name) {
   return { loc: abs(route), priority: '0.5', image: { loc: im.url, title: `${name} Jigsaw Puzzle` } }
@@ -475,7 +595,7 @@ async function runBatched(items, size, fn) {
 // SPA_ROUTES loop in main(). Keep in sync with parseRoute() in src/router.ts.
 const SPA_ROUTES = [
   { path: '/play', title: 'Play a Jigsaw Puzzle', description: 'Play a free online jigsaw puzzle in your browser.' },
-  { path: '/search', title: 'Search Jigsaw Puzzles', description: 'Search free online jigsaw puzzles by keyword.' },
+  // /search was removed with the categories; vercel.json redirects it to "/".
 ]
 
 /** Prerender the home page: full head (canonical, OG/Twitter, robots, @graph)
@@ -629,24 +749,16 @@ async function buildBlog(template, sitemap) {
   return posts.length
 }
 
-async function buildHome(template, labels) {
-  const topKeys = ['dogs', 'cats', 'birds', 'flowers', 'beaches', 'landscapes', 'space', 'food', 'castles', 'trains']
-  const top = topKeys.map((k) => {
-    const label = labels.get(k) || titleCase(k)
-    return { label, path: `/${categorySlug(label)}` }
-  })
-
+async function buildHome(template) {
+  // The home page is built around the 10 hand-written puzzle pages - same data
+  // and wording as src/components/GalleryHome.tsx.
+  const items = FEATURED_PUZZLES.map((f) => ({ f, path: featuredPath(f) }))
   const graph = {
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'WebSite', '@id': abs('/#website'), url: abs('/'), name: SITE,
         description: HOME_DESC, inLanguage: 'en', publisher: { '@id': abs('/#organization') },
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: { '@type': 'EntryPoint', urlTemplate: abs('/search?q={search_term_string}') },
-          'query-input': 'required name=search_term_string',
-        },
       },
       {
         '@type': 'Organization', '@id': abs('/#organization'), name: SITE, url: abs('/'),
@@ -654,21 +766,21 @@ async function buildHome(template, labels) {
       },
       {
         '@type': 'WebPage', '@id': abs('/#webpage'), url: abs('/'), name: 'Free Online Jigsaw Puzzles',
-        isPartOf: { '@id': abs('/#website') }, about: { '@id': abs('/#organization') },
-        inLanguage: 'en', mainEntity: { '@id': abs('/#top-categories') },
+        isPartOf: { '@id': abs('/#website') }, inLanguage: 'en', mainEntity: { '@id': abs('/#puzzles') },
       },
       {
-        '@type': 'ItemList', '@id': abs('/#top-categories'), name: 'Popular jigsaw puzzle categories',
-        itemListOrder: 'https://schema.org/ItemListUnordered', numberOfItems: top.length,
-        itemListElement: top.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.label, url: abs(c.path) })),
+        '@type': 'ItemList', '@id': abs('/#puzzles'), name: 'Free online jigsaw puzzles',
+        numberOfItems: items.length,
+        itemListElement: items.map(({ f, path }, i) => ({ '@type': 'ListItem', position: i + 1, name: f.h1, url: abs(path), image: f.thumb })),
       },
       {
         '@type': 'FAQPage', '@id': abs('/#faq'),
-        mainEntity: HOME_FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+        mainEntity: HOME_FAQ.map((q) => ({ '@type': 'Question', name: q.q, acceptedAnswer: { '@type': 'Answer', text: q.a } })),
       },
     ],
   }
 
+  const hero = FEATURED_PUZZLES[0]
   const head = [
     `    <title>${escHtml(HOME_TITLE)}</title>`,
     `    <meta name="description" content="${escAttr(HOME_DESC)}" />`,
@@ -680,35 +792,37 @@ async function buildHome(template, labels) {
     `    <meta property="og:description" content="${escAttr(HOME_DESC)}" />`,
     `    <meta property="og:url" content="${escAttr(abs('/'))}" />`,
     `    <meta property="og:locale" content="en_US" />`,
-    `    <meta property="og:image" content="${escAttr(abs(OG_IMAGE))}" />`,
-    `    <meta name="twitter:card" content="summary" />`,
+    `    <meta property="og:image" content="${escAttr(hero.image)}" />`,
+    `    <meta name="twitter:card" content="summary_large_image" />`,
     `    <meta name="twitter:title" content="${escAttr(HOME_TITLE)}" />`,
     `    <meta name="twitter:description" content="${escAttr(HOME_DESC)}" />`,
-    `    <meta name="twitter:image" content="${escAttr(abs(OG_IMAGE))}" />`,
+    `    <meta name="twitter:image" content="${escAttr(hero.image)}" />`,
     `    <script type="application/ld+json">${ldSafe(graph)}</script>`,
   ].join('\n')
 
-  const catLinks = top
-    .map((c) => `<li><a href="${escAttr(c.path)}">${escHtml(c.label)} puzzles</a></li>`)
-    .join('')
-  const faq = HOME_FAQ
-    .map((f) => `<div class="faq-item"><h3>${escHtml(f.q)}</h3><p>${escHtml(f.a)}</p></div>`)
-    .join('')
+  const card = ({ f, path }) =>
+    `<li><a href="${escAttr(path)}"><img src="${escAttr(f.thumb)}" width="${f.width}" height="${f.height}" alt="${escAttr(f.alt)}" loading="lazy" />` +
+    `<span>${escHtml(f.h1)}</span></a><p>${escHtml(featuredBlurb(f))} Best at ${f.recommended.pieces} pieces.</p></li>`
+  const xmas = items.filter(({ f }) => f.category === 'christmas' && f !== hero)
+  const MORE_ORDER = ['trains', 'castles', 'dogs', 'fish', 'flowers']
+  const more = items
+    .filter(({ f }) => f.category !== 'christmas')
+    .sort((a, b) => MORE_ORDER.indexOf(a.f.category) - MORE_ORDER.indexOf(b.f.category))
+  const faq = HOME_FAQ.map((q) => `<div class="faq-item"><h3>${escHtml(q.q)}</h3><p>${escHtml(q.a)}</p></div>`).join('')
   const body =
     `<main><h1>Free Online Jigsaw Puzzles</h1>` +
-    `<p>JigsawJam is a collection of free online jigsaw puzzles to play right in your browser - no login, no app, and no downloads. Choose from ${HOME_COUNTS.puzzles} puzzles across ${HOME_COUNTS.categories} categories, set any puzzle from 12 to 300 pieces, and play on desktop or mobile.</p>` +
-    `<p>Every picture here is free. These are jigsaw puzzles online free of charge, with no sign-up and nothing to install - free jigsaw puzzles online that you can start in one click and come back to any day.</p>` +
-    `<p>Prefer to simply play jigsaw online without hunting through menus? Open the <a href="/daily-jigsaw-puzzle">Puzzle of the Day</a> for a fresh jigsaw puzzle free online every morning, and during seasonal events such as Halloween, Christmas and the Summer Solstice your solves earn 3x points. Browse <a href="/categories">all ${HOME_COUNTS.categories} categories</a> or jump into a popular one:</p>` +
-    `<ul>${catLinks}</ul>` +
-    `<h2>More ways to play</h2>` +
-    `<ul>` +
-    `<li><a href="/daily-jigsaw-puzzle">Daily jigsaw puzzle</a></li>` +
-    `<li><a href="/create-a-custom-jigsaw-puzzle">Create a custom puzzle from a photo</a></li>` +
-    `<li><a href="/300-piece-jigsaw-puzzles">300 piece jigsaw puzzles</a></li>` +
-    `<li><a href="/jigsaw-puzzles-for-adults">Jigsaw puzzles for adults</a></li>` +
-    `<li><a href="/jigsaw-puzzles-for-kids">Jigsaw puzzles for kids</a></li>` +
-    `<li><a href="/jigsaw-puzzles-for-seniors">Jigsaw puzzles for seniors</a></li>` +
-    `</ul>` +
+    `<p>Ten hand-picked jigsaw puzzles, each with its own story - from a glowing Christmas market to a steam train in the Scottish Highlands. Free to play in your browser at 12 to 300 pieces. No download, no sign-up.</p>` +
+    `<section><h2>${escHtml(hero.h1)}</h2><a href="${escAttr(featuredPath(hero))}"><img src="${escAttr(hero.thumb)}" width="${hero.width}" height="${hero.height}" alt="${escAttr(hero.alt)}" fetchpriority="high" /></a>` +
+    `<p>${escHtml(featuredBlurb(hero))} Best at ${hero.recommended.pieces} pieces. <a href="${escAttr(featuredPath(hero))}">Play this puzzle</a></p></section>` +
+    `<section><h2>Christmas jigsaw puzzles</h2><ul class="grid">${xmas.map(card).join('')}</ul></section>` +
+    `<section><h2>More free jigsaw puzzles</h2><ul class="grid">${more.map(card).join('')}</ul></section>` +
+    `<section><h2>More ways to play</h2><ul>` +
+    `<li><a href="/jigsaw-puzzles-for-seniors">Jigsaw puzzles for seniors</a> - easy, relaxing puzzles with large pieces.</li>` +
+    `<li><a href="/create-a-custom-jigsaw-puzzle">Make a puzzle from your photo</a> - turn any picture into a free online jigsaw.</li>` +
+    `</ul></section>` +
+    `<section><h2>About JigsawJam</h2>` +
+    `<p>JigsawJam is a home for free online jigsaw puzzles you can play right in your browser - no login, no app and no downloads. Instead of thousands of look-alike pictures, every puzzle here is chosen by hand and comes with its own page: what is in the photo, the story behind it, the best piece count and tips for solving it.</p>` +
+    `<p>Every puzzle can be played at 12, 48, 108 or 300 pieces, on a phone, tablet or computer. Pick a quick 12-piece warm-up or settle in with a 300-piece challenge.</p></section>` +
     `<section aria-labelledby="home-faq"><h2 id="home-faq">Frequently asked questions</h2>${faq}</section>` +
     `</main>`
 
@@ -828,6 +942,19 @@ async function buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap) 
         `</ul></section>`
       : ''
 
+    // Now that categories and generated puzzle pages are gone, landings list
+    // the hand-written puzzle pages instead (easiest first, as in the app).
+    const featuredCards =
+      `<section><h2>Pick a puzzle</h2><ul class="grid">` +
+      [...FEATURED_PUZZLES]
+        .sort((x, y) => x.recommended.pieces - y.recommended.pieces)
+        .map(
+          (fp) =>
+            `<li><a href="${escAttr(featuredPath(fp))}"><img src="${escAttr(fp.thumb)}" width="${fp.width}" height="${fp.height}" alt="${escAttr(fp.alt)}" loading="lazy" />` +
+            `<span>${escHtml(fp.h1)}</span></a></li>`,
+        )
+        .join('') +
+      `</ul></section>`
     const paras = (l.paras || []).map((p) => `<p>${escHtml(p)}</p>`).join('')
     const faq = (l.faq || [])
       .map(([q, a]) => `<div class="faq-item"><h3>${escHtml(q)}</h3><p>${escHtml(a)}</p></div>`)
@@ -837,8 +964,7 @@ async function buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap) 
       `<h1>${escHtml(l.h1)}</h1>` +
       `<p>${escHtml(l.lead)}</p>` +
       paras +
-      gallery +
-      `<ul>${catLinks}<li><a href="/categories">All categories</a></li></ul>` +
+      (LEGACY_PAGES ? gallery + `<ul>${catLinks}<li><a href="/categories">All categories</a></li></ul>` : featuredCards) +
       `<section aria-labelledby="landing-faq"><h2 id="landing-faq">Frequently asked questions</h2>${faq}</section>` +
       `</main>`
 
@@ -879,7 +1005,7 @@ async function buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap) 
     sitemap.push({ loc: abs(`/${key}`), priority: l.kind === 'custom' ? '0.8' : '0.7' })
 
     // Prerender each curated puzzle page (breadcrumb → this landing).
-    if (images.length) {
+    if (LEGACY_PAGES && images.length) {
       if (PRERENDER_PUZZLES) {
         const ctx = categoryContext(images, names)
         await runBatched(images, 200, async (im, i) => {
@@ -1007,13 +1133,14 @@ async function main() {
   const sitemap = [] // {loc, priority}
   const puzzleSitemap = [] // {loc, priority, image} - one per canonical puzzle page
   sitemap.push({ loc: abs('/'), priority: '1.0' })
-  sitemap.push({ loc: abs('/categories'), priority: '0.7' })
+  if (LEGACY_PAGES) sitemap.push({ loc: abs('/categories'), priority: '0.7' })
 
   let catCount = 0
   let puzCount = 0
   let dupCount = 0
   const categoryIndex = [] // {label, slug, cover, count} for the /categories page
 
+  if (LEGACY_PAGES) {
   for (const file of files) {
     const key = file.replace(/\.json$/, '')
     const label = labels.get(key) || titleCase(key.replace(/-/g, ' '))
@@ -1051,6 +1178,8 @@ async function main() {
     if (PRERENDER_PUZZLES) {
       const ctx = categoryContext(images, names)
       await runBatched(images, 200, async (im, i) => {
+        // Hand-written pages replace the generated one (old URL 301s there).
+        if (featuredFor(key, im.id)) return
         const route = puzzlePath(key, im)
         const name = names[i]
         const copy = puzzleCopy(ctx, i, label)
@@ -1092,6 +1221,7 @@ async function main() {
     body: categoriesBody(categoryIndex),
   })
   await writePretty('/categories', categoriesHtml)
+  }
 
   // Client-only routes (/play, /search) have no prerenderable content, but they
   // still need a real file on disk: with `cleanUrls` the host resolves an
@@ -1115,6 +1245,7 @@ async function main() {
     )
   }
 
+  if (LEGACY_PAGES) {
   // Prerender each event page (/event/<key>) - themed evergreen collections.
   const evNames = await eventNames()
   const eventFiles = (await fs.readdir(CATALOG)).filter((f) => f.startsWith('event-') && f.endsWith('.json'))
@@ -1145,13 +1276,15 @@ async function main() {
   // Prerender the Daily Jigsaw Puzzle / Puzzle of the Day landing page.
   await buildDaily(template, labels)
   sitemap.push({ loc: abs(DAILY_PATH), priority: '0.9' })
+  }
 
   // Prerender the SEO landing pages (custom maker, piece-count, audience).
   await buildLandings(template, labels, sitemap, ownerOf, puzzleSitemap)
+  console.log(`  ${await buildFeatured(template, puzzleSitemap)} hand-written puzzle pages`)
 
   // Prerender the home page LAST (overwrites the bare shell template).
-  console.log(`  ${await buildBlog(template, sitemap)} blog posts`)
-  await buildHome(template, labels)
+  if (LEGACY_PAGES) console.log(`  ${await buildBlog(template, sitemap)} blog posts`)
+  await buildHome(template)
 
   // ── sitemap (chunked) + index + robots ──────────────────────────────────
   // Pages and puzzles go in separate files so Search Console reports their

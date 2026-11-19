@@ -1,27 +1,29 @@
-import { useEffect, useState } from 'react'
-import { loadShowcase, type GallerySection } from '@/data/gallery'
-import { ALL_CATEGORIES, HOME_CATEGORIES, categorySlug } from '@/data/categories'
+// Home page: the 10 hand-written puzzle pages (src/data/featuredPuzzles.mjs),
+// a featured hero, two card rows, a few other ways to play, and the FAQ.
+// The prerender step (buildHome in scripts/seo-build.mjs) emits the same
+// content as static HTML from the same data modules.
+import { useEffect } from 'react'
 import { useUiStore } from '@/store/uiStore'
-import { activeEvent } from '@/data/events'
 import { SITE, absUrl, setMeta, setCanonical, setJsonLd, removeJsonLd, resetHead } from '@/lib/seo'
-import { Hero } from './Hero'
-import { EventBanner } from './EventBanner'
-import { CategoryTiles } from './CategoryTiles'
-import { PuzzleOfTheDay } from './PuzzleOfTheDay'
-import { PuzzleCard } from './PuzzleCard'
 import { Icon } from '@/components/Icon'
-import { HOME_TITLE, HOME_DESC, HOME_FAQ, HOME_COUNTS } from '@/data/homeCopy.mjs'
-import './GalleryHome.css'
+import { HOME_TITLE, HOME_DESC, HOME_FAQ } from '@/data/homeCopy.mjs'
+import {
+  FEATURED_PUZZLES,
+  featuredBlurb,
+  featuredPath,
+} from '@/data/featuredPuzzles.mjs'
+import { FeaturedGrid, openFeatured as openPuzzle } from './FeaturedGrid'
+import './FeaturedHome.css'
 
-/** Top categories surfaced as text links + in the ItemList structured data. */
-const TOP_KEYS = ['dogs', 'cats', 'birds', 'flowers', 'beaches', 'landscapes', 'space', 'food', 'castles', 'trains']
-const TOP_CATEGORIES = TOP_KEYS.map((k) => {
-  const c = ALL_CATEGORIES.find((x) => x.key === k)
-  const label = c?.label ?? k
-  return { key: k, label, path: `/${categorySlug(label)}` }
-})
+const HERO = FEATURED_PUZZLES[0]
+const CHRISTMAS = FEATURED_PUZZLES.filter((f) => f.category === 'christmas' && f !== HERO)
+// Two big cards first (train, castle), then three - balanced 2 + 3 on desktop.
+const MORE_ORDER = ['trains', 'castles', 'dogs', 'fish', 'flowers']
+const MORE = FEATURED_PUZZLES.filter((f) => f.category !== 'christmas').sort(
+  (a, b) => MORE_ORDER.indexOf(a.category) - MORE_ORDER.indexOf(b.category),
+)
 
-/** schema.org @graph for the home page (WebSite+SearchAction, Organization, WebPage, ItemList, FAQPage). */
+/** schema.org @graph: WebSite, Organization, WebPage, the 10 puzzles, FAQ. */
 function homeGraph() {
   return {
     '@context': 'https://schema.org',
@@ -34,11 +36,6 @@ function homeGraph() {
         description: HOME_DESC,
         inLanguage: 'en',
         publisher: { '@id': absUrl('/#organization') },
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: { '@type': 'EntryPoint', urlTemplate: absUrl('/search?q={search_term_string}') },
-          'query-input': 'required name=search_term_string',
-        },
       },
       {
         '@type': 'Organization',
@@ -53,21 +50,20 @@ function homeGraph() {
         url: absUrl('/'),
         name: 'Free Online Jigsaw Puzzles',
         isPartOf: { '@id': absUrl('/#website') },
-        about: { '@id': absUrl('/#organization') },
         inLanguage: 'en',
-        mainEntity: { '@id': absUrl('/#top-categories') },
+        mainEntity: { '@id': absUrl('/#puzzles') },
       },
       {
         '@type': 'ItemList',
-        '@id': absUrl('/#top-categories'),
-        name: 'Popular jigsaw puzzle categories',
-        itemListOrder: 'https://schema.org/ItemListUnordered',
-        numberOfItems: TOP_CATEGORIES.length,
-        itemListElement: TOP_CATEGORIES.map((c, i) => ({
+        '@id': absUrl('/#puzzles'),
+        name: 'Free online jigsaw puzzles',
+        numberOfItems: FEATURED_PUZZLES.length,
+        itemListElement: FEATURED_PUZZLES.map((f, i) => ({
           '@type': 'ListItem',
           position: i + 1,
-          name: c.label,
-          url: absUrl(c.path),
+          name: f.h1,
+          url: absUrl(featuredPath(f)),
+          image: f.thumb,
         })),
       },
       {
@@ -84,23 +80,6 @@ function homeGraph() {
 }
 
 export function GalleryHome() {
-  const [query, setQuery] = useState('')
-  const [showcase, setShowcase] = useState<GallerySection[]>([])
-
-  // Scenic home rows (houses, architecture, boats, mountains…) from the catalog.
-  useEffect(() => {
-    let cancelled = false
-    loadShowcase()
-      .then((s) => !cancelled && setShowcase(s))
-      .catch(() => {
-        /* showcase missing - just render no rows */
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  // Home SEO: title, meta description, canonical, and the schema.org @graph.
   useEffect(() => {
     document.title = HOME_TITLE
     setMeta('description', HOME_DESC)
@@ -112,211 +91,109 @@ export function GalleryHome() {
     }
   }, [])
 
-  function runSearch() {
-    const q = query.trim()
-    if (!q) return
-    useUiStore.getState().browseCategory({ key: 'search', label: q, query: q })
-  }
-
-  const featured = activeEvent()
-
-  const SUGGESTIONS = [
-    { key: 'dogs', label: 'Dogs', query: 'dog puppy' },
-    { key: 'nature', label: 'Nature', query: 'nature landscape' },
-    { key: 'space', label: 'Space', query: 'space galaxy stars' },
-    { key: 'flowers', label: 'Flowers', query: 'flowers bloom' },
-    { key: 'cities', label: 'Cities', query: 'city skyline' },
-  ]
-
   return (
-    <div className="gallery">
-      {/* The page's single, stable keyword H1 (the hero/event banner below use
-          h2). Visually hidden so the design lead is the hero, but crawlers and
-          screen readers always get "Free Online Jigsaw Puzzles" as the H1. */}
-      <h1 className="sr-only">Free Online Jigsaw Puzzles</h1>
-      {featured ? <EventBanner event={featured} /> : <Hero />}
+    <div className="fhome">
+      <header className="fhome-intro">
+        <h1>Free Online Jigsaw Puzzles</h1>
+        <p>
+          Ten hand-picked jigsaw puzzles, each with its own story - from a glowing Christmas market
+          to a steam train in the Scottish Highlands. Free to play in your browser at 12 to 300
+          pieces. No download, no sign-up.
+        </p>
+      </header>
 
-      <div className="ghome-searchwrap">
-        <form
-          className="ghome-search"
-          role="search"
-          onSubmit={(e) => {
-            e.preventDefault()
-            runSearch()
-          }}
+      <section className="fhome-hero" aria-label="Featured puzzle">
+        <a
+          className="fhome-hero-media"
+          href={featuredPath(HERO)}
+          onClick={(e) => openPuzzle(e, HERO)}
+          tabIndex={-1}
+          aria-hidden="true"
         >
-          <span className="ghome-search-icon" aria-hidden="true">
-            <Icon name="search" size={20} />
-          </span>
-          <input
-            className="input ghome-search-input"
-            type="search"
-            placeholder="Search puzzles…"
-            aria-label="Search puzzles"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button type="submit" className="btn btn--primary ghome-search-btn">
-            <span className="ghome-search-btn-label">Search</span>
-            <Icon name="arrow-right" size={18} />
-          </button>
-        </form>
-
-        {!featured && (
-          <div className="ghome-suggest">
-            <span className="ghome-suggest-label">Try</span>
-            {SUGGESTIONS.map((node) => (
-              <button
-                key={node.key}
-                type="button"
-                className="chip"
-                onClick={() => useUiStore.getState().browseCategory(node)}
-              >
-                {node.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <PuzzleOfTheDay />
-
-      <section className="ghome-cats">
-        <div className="ghome-cats-head ghome-head">
-          <div className="ghome-head-text">
-            <span className="ghome-eyebrow">Best for jigsaw</span>
-            <h2 className="section-title">Browse Categories</h2>
-            <p className="ghome-head-sub">
-              {HOME_CATEGORIES.length} top categories for jigsaw puzzles
-            </p>
-          </div>
-          <button
-            type="button"
-            className="ghome-viewall"
-            onClick={() => useUiStore.getState().showCategories()}
+          <img src={HERO.thumb} alt="" width={HERO.width} height={HERO.height} />
+        </a>
+        <div className="fhome-hero-body">
+          <span className="fhome-eyebrow">Puzzle of the season</span>
+          <h2>{HERO.h1}</h2>
+          <p>{featuredBlurb(HERO)}</p>
+          <p className="fhome-hero-meta">Best at {HERO.recommended.pieces} pieces · free · no download</p>
+          <a
+            className="btn btn--primary btn--lg fhome-hero-btn"
+            href={featuredPath(HERO)}
+            onClick={(e) => openPuzzle(e, HERO)}
           >
-            View all categories <Icon name="chevron-right" size={16} />
-          </button>
+            <Icon name="play" size={18} /> Play this puzzle
+          </a>
         </div>
-        <CategoryTiles
-          items={HOME_CATEGORIES}
-          onSelect={(node) => useUiStore.getState().browseCategory(node)}
-        />
       </section>
 
-      <div className="ghome-sections">
-        {showcase.map((s) => (
-          <section key={s.key} className="ghome-section">
-            <div className="ghome-head">
-              <div className="ghome-head-text">
-                <span className="ghome-eyebrow">Collection</span>
-                <h2 className="section-title">{s.title}</h2>
-                <p className="ghome-head-sub">
-                  {s.puzzles.length} {s.puzzles.length === 1 ? 'puzzle' : 'puzzles'}
-                </p>
-              </div>
-            </div>
-            <div className="puzzle-grid">
-              {s.puzzles.map((p) => (
-                <PuzzleCard key={p.id} puzzle={p} />
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-
-      <section className="ghome-about" aria-labelledby="ghome-about-title">
-        <div className="ghome-head">
-          <div className="ghome-head-text">
-            <span className="ghome-eyebrow">About</span>
-            <h2 className="section-title" id="ghome-about-title">
-              Free online jigsaw puzzles
-            </h2>
-          </div>
+      <section className="fhome-section" aria-labelledby="fhome-xmas">
+        <div className="fhome-head">
+          <span className="fhome-eyebrow">Festive favourites</span>
+          <h2 id="fhome-xmas">Christmas jigsaw puzzles</h2>
         </div>
-        <p className="ghome-about-lead">
-          JigsawJam is a collection of free online jigsaw puzzles to play right in your browser -
-          no login, no app, and no downloads. Choose from {HOME_COUNTS.puzzles} puzzles across{' '}
-          {HOME_COUNTS.categories} categories, set any puzzle from 12 to 300 pieces, and play on
-          desktop or mobile.
-        </p>
-        <p className="ghome-about-lead">
-          Every picture here is free. These are jigsaw puzzles online free of charge, with no
-          sign-up and nothing to install - free jigsaw puzzles online that you can start in one
-          click and come back to any day.
-        </p>
-        <p className="ghome-about-lead">
-          Prefer to simply play jigsaw online without hunting through menus? Open the{' '}
-          <a
-            href="/daily-jigsaw-puzzle"
-            className="ghome-inlink"
-            onClick={(e) => {
-              e.preventDefault()
-              useUiStore.getState().showDaily()
-            }}
-          >
-            Puzzle of the Day
-          </a>{' '}
-          for a fresh jigsaw puzzle free online every morning, or pick a category below. Seasonal
-          events earn 3× points while they run.
-        </p>
-        <ul className="ghome-toplinks">
-          {TOP_CATEGORIES.map((c) => {
-            const node = ALL_CATEGORIES.find((x) => x.key === c.key)
-            return (
-              <li key={c.key}>
-                <a
-                  href={c.path}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (node) useUiStore.getState().browseCategory(node)
-                  }}
-                >
-                  {c.label} puzzles
-                </a>
-              </li>
-            )
-          })}
-        </ul>
+        <FeaturedGrid items={CHRISTMAS} />
+      </section>
 
-        <h2 className="section-title">More ways to play</h2>
-        <ul className="ghome-toplinks">
+      <section className="fhome-section" aria-labelledby="fhome-more">
+        <div className="fhome-head">
+          <span className="fhome-eyebrow">All year round</span>
+          <h2 id="fhome-more">More free jigsaw puzzles</h2>
+        </div>
+        <FeaturedGrid items={MORE} className="fhome-grid--more" />
+      </section>
+
+      <section className="fhome-section" aria-labelledby="fhome-ways">
+        <div className="fhome-head">
+          <h2 id="fhome-ways">More ways to play</h2>
+        </div>
+        <ul className="fhome-ways">
           <li>
-            <a href="/daily-jigsaw-puzzle" onClick={(e) => { e.preventDefault(); useUiStore.getState().showDaily() }}>
-              Daily jigsaw puzzle
+            <a
+              href="/jigsaw-puzzles-for-seniors"
+              onClick={(e) => {
+                e.preventDefault()
+                useUiStore.getState().showLanding('jigsaw-puzzles-for-seniors')
+              }}
+            >
+              <strong>Jigsaw puzzles for seniors</strong>
+              <span>Easy, relaxing puzzles with large pieces.</span>
             </a>
           </li>
           <li>
-            <a href="/create-a-custom-jigsaw-puzzle" onClick={(e) => { e.preventDefault(); useUiStore.getState().showCustom() }}>
-              Create a custom puzzle from a photo
-            </a>
-          </li>
-          <li>
-            <a href="/300-piece-jigsaw-puzzles" onClick={(e) => { e.preventDefault(); useUiStore.getState().showLanding('300-piece-jigsaw-puzzles') }}>
-              300 piece jigsaw puzzles
-            </a>
-          </li>
-          <li>
-            <a href="/jigsaw-puzzles-for-adults" onClick={(e) => { e.preventDefault(); useUiStore.getState().showLanding('jigsaw-puzzles-for-adults') }}>
-              Jigsaw puzzles for adults
-            </a>
-          </li>
-          <li>
-            <a href="/jigsaw-puzzles-for-kids" onClick={(e) => { e.preventDefault(); useUiStore.getState().showLanding('jigsaw-puzzles-for-kids') }}>
-              Jigsaw puzzles for kids
-            </a>
-          </li>
-          <li>
-            <a href="/jigsaw-puzzles-for-seniors" onClick={(e) => { e.preventDefault(); useUiStore.getState().showLanding('jigsaw-puzzles-for-seniors') }}>
-              Jigsaw puzzles for seniors
+            <a
+              href="/create-a-custom-jigsaw-puzzle"
+              onClick={(e) => {
+                e.preventDefault()
+                useUiStore.getState().showCustom()
+              }}
+            >
+              <strong>Make a puzzle from your photo</strong>
+              <span>Turn any picture into a free online jigsaw.</span>
             </a>
           </li>
         </ul>
+      </section>
 
-        <h2 className="section-title ghome-faq-title">Frequently asked questions</h2>
-        <dl className="ghome-faq">
+      <section className="fhome-section fhome-about" aria-labelledby="fhome-about">
+        <h2 id="fhome-about">About JigsawJam</h2>
+        <p>
+          JigsawJam is a home for free online jigsaw puzzles you can play right in your browser - no
+          login, no app and no downloads. Instead of thousands of look-alike pictures, every puzzle
+          here is chosen by hand and comes with its own page: what is in the photo, the story behind
+          it, the best piece count and tips for solving it.
+        </p>
+        <p>
+          Every puzzle can be played at 12, 48, 108 or 300 pieces, on a phone, tablet or computer.
+          Pick a quick 12-piece warm-up or settle in with a 300-piece challenge.
+        </p>
+      </section>
+
+      <section className="fhome-section" aria-labelledby="fhome-faq">
+        <h2 id="fhome-faq">Frequently asked questions</h2>
+        <dl className="fhome-faq">
           {HOME_FAQ.map((f) => (
-            <div className="ghome-faq-item" key={f.q}>
+            <div key={f.q}>
               <dt>{f.q}</dt>
               <dd>{f.a}</dd>
             </div>

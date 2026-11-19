@@ -1,140 +1,159 @@
-/* Footer - "Sunlit Puzzle Table". Calm, warm, faint. */
+/* Footer - brand + call to action, three link columns, and a bottom bar.
+   Sits on a soft tinted panel so it reads as its own area of the page. */
 
 .footer {
   margin-top: auto;
-  border-top: 1px solid var(--hairline);
-  background: linear-gradient(180deg, transparent, rgba(74, 54, 33, 0.025));
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
 }
 
 .footer-inner {
   width: 100%;
   max-width: var(--max-w);
   margin: 0 auto;
-  padding: 36px 20px 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  text-align: center;
+  padding: 48px 20px 28px;
 }
 
-/* Brand + tagline cluster */
+/* ── Top: brand + 3 columns ────────────────────────────────────────────── */
+.footer-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+  gap: 40px;
+}
+
 .footer-brand {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 14px;
 }
-
 .footer-tagline {
   margin: 0;
+  max-width: 36ch;
   color: var(--text-muted);
-  font-size: 0.92rem;
-  line-height: 1.5;
-  max-width: 38ch;
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
-
-/* Link column */
-.footer-links {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.footer-link {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: var(--text-muted);
-  font: inherit;
-  font-weight: 600;
-  font-size: 0.9rem;
+.footer-cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+  padding: 10px 18px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  box-shadow: 0 2px 8px -2px var(--accent);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.footer-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px -4px var(--accent);
 }
 
-.footer-link svg {
-  color: var(--text-faint);
+.footer-col-title {
+  margin: 0 0 14px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.footer-col a,
+.footer-col button {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  color: var(--text-muted);
+  text-decoration: none;
+  cursor: pointer;
   transition: color var(--dur-fast) var(--ease);
 }
-
-.footer-link:hover svg {
+.footer-col a:hover,
+.footer-col button:hover {
   color: var(--accent-strong);
 }
-
-.footer-link:hover {
-  color: var(--accent-strong);
-  background: rgba(74, 54, 33, 0.05);
-  text-decoration: none;
+.footer-col a:focus-visible,
+.footer-col button:focus-visible,
+.footer-cta:focus-visible,
+.footer-bottom a:focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
-/* Faint attribution line */
-.footer-attribution {
+/* ── Bottom bar ────────────────────────────────────────────────────────── */
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.footer-bottom p {
   margin: 0;
+  font-size: 0.85rem;
   color: var(--text-faint);
-  font-size: 0.8rem;
-  line-height: 1.5;
+}
+.footer-bottom a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-.footer-attribution a {
-  color: var(--text-faint);
-  font-weight: 600;
-}
-
-.footer-attribution a:hover {
-  color: var(--accent-strong);
-}
-
-/* Narrow phones: tighten gutters, keep links tappable */
-@media (max-width: 600px) {
-  .footer-inner {
-    padding: 28px 14px 32px;
-    gap: 16px;
+/* ── Tablet: brand on its own row, columns below ───────────────────────── */
+@media (max-width: 860px) {
+  .footer-top {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px 24px;
   }
-  .footer-link {
-    padding: 8px 12px;
-    min-height: 40px;
-  }
-}
-
-/* Wider screens: brand left, links + attribution to the right */
-@media (min-width: 720px) {
-  .footer-inner {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    text-align: left;
-    gap: 24px;
-    padding: 40px 20px 44px;
-  }
-
   .footer-brand {
-    align-items: center;
-    flex-direction: row;
-    gap: 14px;
+    grid-column: 1 / -1;
   }
+}
 
-  .footer-tagline {
-    max-width: 30ch;
+/* ── Phone: brand, then two columns, then Play full width ──────────────── */
+@media (max-width: 560px) {
+  .footer-inner {
+    padding: 36px 16px 24px;
   }
-
-  .footer-links {
-    flex-direction: row;
-    align-items: center;
-    gap: 4px;
+  .footer-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 20px;
   }
+  .footer-col:last-child {
+    grid-column: 1 / -1;
+  }
+  .footer-col:last-child ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .footer-bottom {
+    flex-direction: column;
+    margin-top: 32px;
+  }
+}
 
-  .footer-attribution {
-    flex-basis: 100%;
-    text-align: center;
-    padding-top: 6px;
-    border-top: 1px solid var(--hairline);
+@media (prefers-reduced-motion: reduce) {
+  .footer-cta {
+    transition: none;
+  }
+  .footer-cta:hover {
+    transform: none;
   }
 }
