@@ -59,6 +59,35 @@
   color: var(--accent-strong);
 }
 
+/* Hand-written sections + related links (src/data/categoryEditorial.mjs) */
+.catpg-editorial {
+  margin-top: 48px;
+  max-width: 75ch;
+}
+.catpg-editorial section + section {
+  margin-top: 32px;
+}
+.catpg-editorial h2 {
+  font-size: 1.5rem;
+  margin: 0 0 12px;
+}
+.catpg-editorial p {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+.catpg-related {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--text-muted);
+  line-height: 1.9;
+}
+.catpg-related a {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
 /* FAQ - visible content mirrored as FAQPage JSON-LD (for Google + AI answers) */
 .catpg-faq {
   margin-top: 48px;

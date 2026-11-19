@@ -16,6 +16,7 @@ import { slugName, displayNames, puzzleDescription } from '../src/data/puzzleTit
 import { categoryContext, puzzleCopy } from '../src/data/puzzleCopy.mjs'
 import { POSTS } from './blog-posts.mjs'
 import { categoryCopy } from '../src/data/categoryCopy.mjs'
+import { categoryEditorial, featuredFirst } from '../src/data/categoryEditorial.mjs'
 import {
   categoryKeyword,
   categoryKeywordInline,
@@ -206,6 +207,16 @@ function categoryBody(key, label, images, names, copy) {
   const faq = copy.faq
     .map((f) => `<div class="faq-item"><h3>${escHtml(f.q)}</h3><p>${escHtml(f.a)}</p></div>`)
     .join('')
+  // Hand-written sections + related links (src/data/categoryEditorial.mjs).
+  const ed = categoryEditorial(key)
+  const editorial = ed
+    ? ed.sections
+        .map((sec) => `<section><h2>${escHtml(sec.heading)}</h2>${sec.paras.map((t) => `<p>${escHtml(t)}</p>`).join('')}</section>`)
+        .join('') +
+      `<section><h2>More puzzles you might like</h2><ul>${ed.related
+        .map((r) => `<li><a href="${escAttr(r.href)}">${escHtml(r.label)}</a> - ${escHtml(r.note)}</li>`)
+        .join('')}</ul></section>`
+    : ''
   return (
     `<main><nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/categories">Categories</a> / <span>${escHtml(label)}</span></nav>` +
     `<h1>${escHtml(categoryH1(key, label))}</h1>` +
@@ -213,6 +224,7 @@ function categoryBody(key, label, images, names, copy) {
     paras +
     `<p><strong>${images.length}</strong> free ${escHtml(l)} jigsaw puzzles · play any from 12 to 300 pieces.</p>` +
     `<ul class="grid">${cards}</ul>` +
+    editorial +
     `<section aria-label="All ${escHtml(label)} puzzles" class="all-index">${allLinks}</section>` +
     `<section aria-labelledby="faq"><h2 id="faq">${escHtml(kw)} jigsaw puzzles - frequently asked questions</h2>${faq}</section>` +
     `</main>`
@@ -1011,6 +1023,12 @@ async function main() {
     // React app uses - static HTML and hydrated page stay identical.
     const names = displayNames(images)
     const copy = categoryCopy(key, label, CATEGORY_FACTS[key])
+    // Hand-picked featured puzzles lead the grid; names stay tied to their image.
+    const shown = featuredFirst(
+      images.map((im, i) => ({ im, name: names[i] })),
+      categoryEditorial(key)?.featured,
+      (x) => x.im.id,
+    )
     categoryIndex.push({ label, slug, cover: images[0]?.thumb || '', count: images.length })
 
     // Category landing page (page 1, canonical).
@@ -1022,8 +1040,8 @@ async function main() {
       prev: null,
       next: totalPages > 1 ? `/${slug}?page=2` : null,
       robots: RICH_ROBOTS,
-      jsonld: categoryJsonLd(key, label, slug, images, names, copy),
-      body: categoryBody(key, label, images, names, copy),
+      jsonld: categoryJsonLd(key, label, slug, shown.map((x) => x.im), shown.map((x) => x.name), copy),
+      body: categoryBody(key, label, shown.map((x) => x.im), shown.map((x) => x.name), copy),
     })
     await writePretty(slug, catHtml)
     sitemap.push({ loc: abs(`/${slug}`), priority: '0.8' })

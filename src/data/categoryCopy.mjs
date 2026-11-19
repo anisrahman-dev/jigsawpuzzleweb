@@ -12,6 +12,7 @@
 // same exact-match keyword the title targets (see categorySeo.mjs), so the
 // body reinforces the phrase instead of competing with a near-miss variant.
 import { categoryKeywordInline } from './categorySeo.mjs'
+import { categoryEditorial } from './categoryEditorial.mjs'
 
 /** Stable small hash so a given category always gets the same phrasing. */
 function pick(key, n) {
@@ -61,6 +62,9 @@ const ADVICE = [
  * @param {{count:number,subjects:string[]}=} facts from src/data/categoryFacts.mjs
  */
 export function categoryCopy(key, label, facts) {
+  // Hand-written pages (categoryEditorial.mjs) replace the template entirely.
+  const ed = categoryEditorial(key)
+  if (ed) return { lead: ed.lead, paras: [], faq: ed.faq }
   const l = categoryKeywordInline(key, label)
   const count = facts?.count ?? 0
   const subjects = facts?.subjects ?? []

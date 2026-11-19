@@ -31,6 +31,8 @@
 // they are (categorySlug() in src/data/categories.ts); moving them would 404
 // every page Google has already crawled.
 
+import { categoryEditorial } from './categoryEditorial.mjs'
+
 /** key -> { kw: exact-match subject for the title, hook: what's in the set } */
 export const CATEGORY_SEO = {
   abstract: { kw: 'Abstract', hook: 'colourful patterns, shapes and digital artwork' },
@@ -221,6 +223,9 @@ export function categoryTitle(key, label, opts = {}) {
   // Paginated pages get a short, plainly-distinct title - they are not trying
   // to rank for the head term, the canonical page 1 is.
   if (page > 1) return `${kw} Jigsaw Puzzles - Page ${page}${site ? ` | ${site}` : ''}`
+  // A hand-written title (src/data/categoryEditorial.mjs) wins on page 1.
+  const ed = categoryEditorial(key)
+  if (ed) return site === 'JigsawJam' ? ed.title : ed.title.replace(/ \| JigsawJam$/, site ? ` | ${site}` : '')
   return jigsawTitle(kw, opts)
 }
 
@@ -249,6 +254,8 @@ const DESC_TAILS = [
  * @param {{count?: number}=} facts  from src/data/categoryFacts.mjs
  */
 export function categoryDescription(key, label, facts) {
+  const ed = categoryEditorial(key)
+  if (ed) return ed.description
   const kw = categoryKeywordInline(key, label)
   const hook = categoryHook(key)
   const count = facts?.count ?? 0

@@ -19,6 +19,7 @@ import {
   categoryDescription,
 } from '@/data/categorySeo.mjs'
 import { CATEGORY_FACTS } from '@/data/categoryFacts.mjs'
+import { categoryEditorial, featuredFirst } from '@/data/categoryEditorial.mjs'
 import { urlForRoute, puzzleSlug } from '@/router'
 import {
   SITE,
@@ -70,6 +71,8 @@ export function CategoryPage() {
   // Memoised: the SEO effect depends on it and it must not change identity
   // on every render.
   const copy = useMemo(() => categoryCopy(key, label, CATEGORY_FACTS[key]), [key, label])
+  // Hand-written sections and related links, for the categories that have them.
+  const editorial = categoryEditorial(key)
   const metaDescription = useMemo(
     () => categoryDescription(key, label, CATEGORY_FACTS[key]),
     [key, label],
@@ -86,7 +89,14 @@ export function CategoryPage() {
     // fall back to live Pixabay search, then to the curated catalogue.
     loadCategoryCatalog(node.key)
       .catch(() => searchGallery(node.query))
-      .then((r) => !cancelled && setResults(r))
+      // Hand-picked featured puzzles (categoryEditorial.mjs) lead the grid.
+      .then(
+        (r) =>
+          !cancelled &&
+          setResults(
+            featuredFirst(r, categoryEditorial(node.key)?.featured, (p) => p.id.replace(/^[a-z]-/, '')),
+          ),
+      )
       .catch((e) => {
         if (cancelled) return
         setError(e instanceof PixabayError ? e.kind : 'error')
@@ -298,6 +308,29 @@ export function CategoryPage() {
             )
           })()}
         </>
+      )}
+
+      {editorial && (
+        <div className="catpg-editorial">
+          {editorial.sections.map((sec) => (
+            <section key={sec.heading}>
+              <h2>{sec.heading}</h2>
+              {sec.paras.map((t) => (
+                <p key={t}>{t}</p>
+              ))}
+            </section>
+          ))}
+          <section>
+            <h2>More puzzles you might like</h2>
+            <ul className="catpg-related">
+              {editorial.related.map((r) => (
+                <li key={r.href}>
+                  <a href={r.href}>{r.label}</a> - {r.note}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
       )}
 
       <section className="catpg-faq" aria-labelledby="catpg-faq-title">
